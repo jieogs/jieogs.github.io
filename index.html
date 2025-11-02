@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>温暖话语</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        .tip-box {
+            position: absolute;
+            padding: 10px;
+            border-radius: 8px;
+            color: #000;
+            font-family: "微软雅黑", sans-serif;
+            font-weight: bold;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // 温暖提示语列表
+        const tips = [
+            "多喝热水~", "保持微笑", "每天都要元气满满", "保持好心情", "好好爱自己",
+            "梦想成真", "顺顺利利", "早点休息", "愿所有烦恼都消失", "别熬夜", "注意保暖",
+            "远离让你不开心的人和事", "要微笑", "要开心", "要快乐", "要健康", "要平安", "要顺利",
+            "要幸福", "要好运", "爱自己"
+        ];
+
+        // 背景颜色列表
+        const bgColors = [
+            "lightpink", "skyblue", "lightgreen", "lavender", "lightyellow", "plum",
+            "coral", "bisque", "aquamarine", "mistyrose", "honeydew", "peachpuff",
+            "paleturquoise", "lavenderblush", "oldlace", "lemonchiffon", "lightcyan", "lightgray"
+        ];
+
+        // 生成随机位置的提示框
+        function createTip() {
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const tipWidth = 120;
+            const tipHeight = 40;
+
+            // 随机位置
+            const x = Math.random() * (windowWidth - tipWidth);
+            const y = Math.random() * (windowHeight - tipHeight);
+
+            // 随机提示语和背景色
+            const tip = tips[Math.floor(Math.random() * tips.length)];
+            const bgColor = bgColors[Math.floor(Math.random() * bgColors.length)];
+
+            // 创建提示框元素
+            const tipBox = document.createElement("div");
+            tipBox.className = "tip-box";
+            tipBox.style.left = `${x}px`;
+            tipBox.style.top = `${y}px`;
+            tipBox.style.backgroundColor = bgColor;
+            tipBox.innerText = tip;
+            document.body.appendChild(tipBox);
+
+            // 3秒后自动消失
+            setTimeout(() => {
+                tipBox.style.opacity = "0";
+                tipBox.style.transition = "opacity 0.5s ease-in-out";
+                setTimeout(() => {
+                    document.body.removeChild(tipBox);
+                }, 500);
+            }, 3000);
+        }
+
+        // 页面加载后，每隔50毫秒创建一个提示框
+        window.onload = function() {
+            setInterval(createTip, 50);
+        };
+    </script>
+</body>
+</html>
