@@ -1,157 +1,157 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Erebus Kernel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<！doctype超文本标记语言>
+<超文本标记语言<html 朗="zh-CN">Lang="zh-CN">
+<头>
+<元 字符集="UTF-8"><元 字符集="UTF-8">
+<元名称=“视口”内容=“宽度=设备宽度，初始比例=1.0”><元 姓名="视口" 内容="宽度=设备宽度，初始比例=1.0">
+<标题>埃里伯斯内核</标题><标题>埃里伯斯内核</标题>
+<链接 href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;400;500;700&display=swap"400；500；700>重新链接"="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700
+<风格><
+*{{
+页边距：0；边缘：0;
+填充：0；填充：0;
+框大小：边框框；箱体尺寸：边框框;
+}
         
-        body {
-            background: #0a0e17;
-            color: #e0e0ff;
-            font-family: 'Rajdhani', sans-serif;
-            overflow-x: hidden;
-            min-height: 100vh;
-            position: relative;
-            line-height: 1.6;
-        }
+正文{身体 {
+背景：#0a0e17；背景：#0a0e17；
+颜色：#e0e0ff；颜色：#e0e0ff；
+字体系列：'拉杰哈尼，无衬线；字体系列：'拉杰哈尼，无衬线；
+overflow-x：隐藏；overflow-x：隐藏的；
+最低高度：100vh；min-height:100；
+位置：相对；位置：相对的;
+线高：1.6；线高: 1.6;
+}
         
-        /* 性能优化的背景效果 */
-        .bg-effects {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
-        }
+/* 性能优化的背景效果 *//* 性能优化的背景效果 */
+.bg-效应{bg-效应.bg-效果
+位置：固定；位置：确定的;
+顶端:0: 0;
+左：0；左：0;
+宽度：100%；宽度：100%；
+高度：100%；高度：100%；
+Z指标：0；z指标：0；
+溢出：隐藏；溢出：隐藏的;
+}
         
-        #particles-js {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
+#粒子-js{粒子-js{
+位置: 绝对的;
+宽度: 100%;
+高度: 100%;
+Z指数：1；
+}
         
-        /* 移除网格背景，改用更轻量的渐变效果 */
-        .light-effects {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(64, 224, 208, 0.15) 0%, transparent 25%),
-                radial-gradient(circle at 80% 70%, rgba(255, 0, 128, 0.15) 0%, transparent 25%);
-            z-index: 2;
-            animation: bgPulse 15s infinite alternate;
-        }
+/* 移除网格背景，改用更轻量的渐变效果 */
+.光效 {
+位置: 绝对的;
+顶端: 0;
+左: 0;
+宽度: 100%;
+高度: 100%;
+背景:
+径向梯度(圆 在 20% 30%, RGBA(64, 224, 208, 0.15) 0%, 透明的 25%),
+径向梯度(圆 在 80% 70%, RGBA(255, 0, 128, 0.15) 0%, 透明的 25%);
+Z指数：2；
+动画：bgPulse15s无限的交替；
+}
         
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, 
-                rgba(255, 255, 255, 0.03) 50%, 
-                rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 10;
-            animation: scanline 8s linear infinite;
-            opacity: 0.1;
-        }
+.扫描线 {
+位置: 确定的;
+顶端: 0;
+左: 0;
+宽度: 100%;
+高度: 100%;
+背景: 线性梯度(到 底部,
+RGBA(255，255，255，0.03)50%，
+RGBA(0，0，0，0.1)50%)；
+背景尺寸：100%4PX；
+指针事件: 没有一个;
+Z指数：10；
+动画：扫描线8s线性的无限的；
+不透明度: 0.1;
+}
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+.容器 {
+最大宽度：1200px；
+边缘: 0 自动;
             padding: 0 20px;
-            position: relative;
-            z-index: 20;
+位置：相对；
+Z指数：20；
         }
         
-        header {
-            padding: 40px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(64, 224, 208, 0.3);
-            position: relative;
+页眉{
+填充：40px0；
+显示：柔性；
+justify-Content：间隔；
+对齐项：居中；
+border-bottom:1px实体rgba(64，224，208，0.3)；
+位置：相对；
         }
         
-        .logo {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 0 10px #40e0d0;
-            letter-spacing: 2px;
-            position: relative;
-            display: inline-block;
+.logo{
+font-family：'Orbitron'，无衬线；
+font-size:28px；
+font-weight:700；
+颜色：#FFF；
+text-shadow:0010px#40e0d0；
+字母间距：2px；
+位置：相对；
+显示：内联块；
         }
         
-        .logo::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #40e0d0, transparent);
-            animation: scanline 3s linear infinite;
+.logo：：在{之后
+内容：“”；
+位置：绝对；
+底部：-5px；
+左：0；
+宽度：100%；
+高度：2px；
+背景：线性梯度(90度，透明，#40e0d0，透明)；
+动画：扫描线3s线性无限；
         }
         
-        .logo span {
-            display: inline-block;
-            animation: textGlow 2s infinite;
+.logo跨度{
+显示：内联块；
+动画：TextGlow2s infinite；
         }
         
-        .logo span:nth-child(1) { animation-delay: 0.1s; }
-        .logo span:nth-child(2) { animation-delay: 0.2s; }
-        .logo span:nth-child(3) { animation-delay: 0.3s; }
-        .logo span:nth-child(4) { animation-delay: 0.4s; }
-        .logo span:nth-child(5) { animation-delay: 0.5s; }
-        .logo span:nth-child(6) { animation-delay: 0.6s; }
-        .logo span:nth-child(7) { animation-delay: 0.7s; }
-        .logo span:nth-child(8) { animation-delay: 0.8s; }
+.logo跨度：nth-child(1){动画延迟：0.1s；}
+.logo跨度：nth-child(2){动画延迟：0.2s；}
+.logo跨度：nth-child(3){动画延迟：0.3s；}
+.logo跨度：nth-child(4){动画延迟：0.4s；}
+.logo跨度：nth-child(5){动画延迟：0.5s；}
+.logo跨度：nth-child(6){动画延迟：0.6s；}
+.logo跨度：nth-child(7){动画延迟：0.7s；}
+.logo跨度：nth-child(8){动画延迟：0.8s；}
         
-        nav ul {
-            display: flex;
-            list-style: none;
+NAV ul{
+显示：柔性；
+列表样式：无；
         }
         
-        nav ul li {
-            margin-left: 40px;
-            position: relative;
+NAV ul li{
+margin-left:40px；
+位置：相对；
         }
         
-        nav ul li a {
-            color: #b0b0ff;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-            padding: 5px 0;
+NAV ul li a{
+颜色：#b0b0ff；
+文字修饰：无；
+字体大小：18px；
+font-weight:500；
+过渡：所有0.3s轻松；
+位置：相对；
+填充：5px0；
         }
         
-        nav ul li a:hover {
-            color: #40e0d0;
+导航ul li a：悬停{
+颜色：#40e0d0；
         }
         
-        nav ul li a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
+{之后的NAV ul li a：：
+内容：“”；
+位置：绝对；
+底部：0；
+左：0；
             width: 0;
             height: 2px;
             background: linear-gradient(90deg, #40e0d0, #ff0080);
@@ -513,9 +513,8 @@
   <p class="subtitle">
     Erebus Kernel致力于前沿技术创新，为用户提供绝对安全的辅助保障，重新定义行业标准
   </p>
-  <a href="https://developer-oss.lanrar.com/file/?BGJSbFtqVGUIAVdvVGEHa1BvBz8DGQBwVTdSNlN6USNVe1p3Cj4AJAFxUGAGOwBtUm0DWV9pVzFXbVtvUjgGNwQ8UjNbNVQ4CGhXMlQmB2BQeQc/A2kAMlVhUmZTPFFnVWRaKwonACQBalA0BmIAM1I9AylfMVdkV39bbVI4BigEPVI2WzRUZQg4VzhUNQdnUDsHMgNrADBVZFJtUztRZ1U3Wj0KMQBtATZQMgY0ADZSPAM3XzJXbVdoW2xSOgZjBCpSf1tvVHAIeFd0VHMHY1B4B2sDOAA/VWNSY1M7UWlVYVo1CmUAcgEjUG8GPwBkUm4DO18xV2JXZltvUjoGNgQyUjBbNVQ0CHhXZ1RsB3FQNwcyA3oAd1UiUiNTMlFhVWJaOwplAGABZlAzBmUAOFI7AyBfdVc8VyBbYFI/Bj8EN1IrWzRUMAhmVy9UMQc/UDMHLANtADtVYlJyU2tRPFVoWj0=" class="cta-button" target="_blank" rel="noopener">立即下载</a>
+  <a href="https://www.123912.com/s/Noy8Vv-6plWA" class="cta-button" target="_blank" rel="noopener">立即下载</a>
 </section>
-
         <section class="features">
             <div class="feature-card">
                 <div class="feature-icon">&#9786;</div>
