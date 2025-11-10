@@ -790,4 +790,26 @@
         })();
     </script>
 </body>
+    <!-- 自动播放 1.mp3 音乐（隐藏式） -->
+<audio id="autoPlayMusic" autoplay loop preload="auto" style="display: none;">
+  <source src="1.mp3" type="audio/mpeg">
+  您的浏览器不支持音频播放
+</audio>
+
+<script>
+// 兼容浏览器自动播放限制
+document.addEventListener('DOMContentLoaded', function() {
+  const audio = document.getElementById('autoPlayMusic');
+  audio.play().catch(() => {
+    // 点击/触摸页面后触发播放（解决浏览器限制）
+    const triggerPlay = () => {
+      audio.play();
+      document.removeEventListener('click', triggerPlay);
+      document.removeEventListener('touchstart', triggerPlay);
+    };
+    document.addEventListener('click', triggerPlay, { once: true });
+    document.addEventListener('touchstart', triggerPlay, { once: true });
+  });
+});
+</script>
 </html>
