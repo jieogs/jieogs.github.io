@@ -1,825 +1,938 @@
+
+<?php
+// 配置区域
+define('STORAGE_DIR', __DIR__ . '/storage/');
+define('DB_FILE', __DIR__ . '/database.json');
+define('MAX_VIEWS_MIN', 1);
+define('MAX_VIEWS_MAX', 999);
+
+// 创建必要目录
+if (!file_exists(STORAGE_DIR)) {
+    mkdir(STORAGE_DIR, 0700, true);
+}
+
+// 处理文件查看
+if (isset($_GET['token'])) {
+    $token = $_GET['token'];
+    $db = loadDatabase();
+    
+    if (isset($db[$token])) {
+        $entry = $db[$token];
+        $filePath = STORAGE_DIR . $entry['filename'];
+        
+        // 检查访问次数
+        if ($entry['views'] >= $entry['max_views']) {
+            // 删除文件并移除记录
+            @unlink($filePath);
+            unset($db[$token]);
+            saveDatabase($db);
+            renderExpiredPage();
+            exit;
+        }
+        
+        // 增加访问计数
+        $db[$token]['views']++;
+        saveDatabase($db);
+        
+        // 输出文件
+        header('Content-Type: ' . mime_content_type($filePath));
+        readfile($filePath);
+        
+        // 检查是否需要销毁
+        if ($db[$token]['views'] >= $db[$token]['max_views']) {
+            @unlink($filePath);
+            unset($db[$token]);
+            saveDatabase($db);
+        }
+        exit;
+    } else {
+        renderInvalidLinkPage();
+        exit;
+    }
+}
+
+// 处理文件上传
+$error = '';
+$link = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
+    $file = $_FILES['file'];
+    $maxViews = isset($_POST['views']) ? max(MAX_VIEWS_MIN, min(MAX_VIEWS_MAX, (int)$_POST['views'])) : MAX_VIEWS_MIN;
+    
+    // 验证文件类型
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!in_array($file['type'], $allowedTypes)) {
+        $error = '只允许上传JPG、PNG、GIF或WEBP图片';
+    } else if ($file['error'] !== UPLOAD_ERR_OK) {
+        $error = '文件上传错误: ' . $file['error'];
+    } else {
+        // 生成唯一标识
+        $token = bin2hex(random_bytes(16));
+        $filename = $token . '_' . basename($file['name']);
+        $filePath = STORAGE_DIR . $filename;
+        
+        // 保存文件
+        if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            // 保存到数据库
+            $db = loadDatabase();
+            $db[$token] = [
+                'filename' => $filename,
+                'max_views' => $maxViews,
+                'views' => 0,
+                'created' => time()
+            ];
+            saveDatabase($db);
+            
+            // 生成访问链接
+            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+            $host = $_SERVER['HTTP_HOST'];
+            $script = $_SERVER['SCRIPT_NAME'];
+            $link = "$protocol://$host$script?token=$token";
+        } else {
+            $error = '文件保存失败，请检查目录权限';
+        }
+    }
+}
+
+// 辅助函数：加载数据库
+function loadDatabase() {
+    if (file_exists(DB_FILE)) {
+        return json_decode(file_get_contents(DB_FILE), true) ?: [];
+    }
+    return [];
+}
+
+// 辅助函数：保存数据库
+function saveDatabase($data) {
+    file_put_contents(DB_FILE, json_encode($data, JSON_PRETTY_PRINT));
+}
+
+// 渲染过期页面
+function renderExpiredPage() {
+    header("Content-Type: text/html");
+    echo <<<HTML
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>文件已销毁</title>
+        <style>
+            * { 
+                margin: 0; 
+                padding: 0; 
+                box-sizing: border-box; 
+                -webkit-tap-highlight-color: transparent;
+            }
+            body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+                min-height: 100vh; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                color: #fff;
+                padding: 20px;
+                line-height: 1.5;
+            }
+            .container { 
+                background: rgba(255, 255, 255, 0.1); 
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border-radius: 16px; 
+                padding: 30px 25px; 
+                width: 100%;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                margin: 20px;
+            }
+            h1 { 
+                font-size: 1.8rem; 
+                margin-bottom: 15px; 
+                font-weight: 600;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            }
+            p { 
+                font-size: 1rem; 
+                margin-bottom: 25px; 
+                opacity: 0.9;
+            }
+            .icon { 
+                font-size: 3.5rem; 
+                margin-bottom: 20px; 
+                color: #ff6b6b;
+                text-shadow: 0 0 15px rgba(255, 107, 107, 0.7);
+            }
+            .btn {
+                display: inline-block;
+                background: #fff;
+                color: #2575fc;
+                padding: 12px 28px;
+                border-radius: 50px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 1rem;
+                transition: all 0.2s ease;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                border: none;
+                cursor: pointer;
+                width: 100%;
+                max-width: 200px;
+            }
+            .btn:active {
+                transform: scale(0.98);
+            }
+            @media (max-width: 480px) {
+                .container {
+                    padding: 25px 20px;
+                    border-radius: 14px;
+                }
+                h1 {
+                    font-size: 1.6rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">🔥</div>
+            <h1>文件已自毁</h1>
+            <p>此文件已达到最大访问次数限制，系统已自动销毁。</p>
+            <a href="./" class="btn">返回首页</a>
+        </div>
+    </body>
+    </html>
+HTML;
+}
+
+// 渲染无效链接页面
+function renderInvalidLinkPage() {
+    header("Content-Type: text/html");
+    echo <<<HTML
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>链接无效</title>
+        <style>
+            * { 
+                margin: 0; 
+                padding: 0; 
+                box-sizing: border-box; 
+                -webkit-tap-highlight-color: transparent;
+            }
+            body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+                min-height: 100vh; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                color: #333;
+                padding: 20px;
+                line-height: 1.5;
+            }
+            .container { 
+                background: rgba(255, 255, 255, 0.2); 
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border-radius: 16px; 
+                padding: 30px 25px; 
+                width: 100%;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                margin: 20px;
+            }
+            h1 { 
+                font-size: 1.8rem; 
+                margin-bottom: 15px; 
+                color: #d63031;
+                font-weight: 600;
+            }
+            p { 
+                font-size: 1rem; 
+                margin-bottom: 25px; 
+                opacity: 0.9;
+            }
+            .icon { 
+                font-size: 3.5rem; 
+                margin-bottom: 20px;
+                color: #d63031;
+            }
+            .btn {
+                display: inline-block;
+                background: #d63031;
+                color: white;
+                padding: 12px 28px;
+                border-radius: 50px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 1rem;
+                transition: all 0.2s ease;
+                box-shadow: 0 4px 12px rgba(214, 48, 49, 0.3);
+                border: none;
+                cursor: pointer;
+                width: 100%;
+                max-width: 200px;
+            }
+            .btn:active {
+                transform: scale(0.98);
+            }
+            @media (max-width: 480px) {
+                .container {
+                    padding: 25px 20px;
+                    border-radius: 14px;
+                }
+                h1 {
+                    font-size: 1.6rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">⚠️</div>
+            <h1>链接无效或已过期</h1>
+            <p>您访问的链接可能已失效、过期或被销毁。</p>
+            <a href="./" class="btn">返回首页</a>
+        </div>
+    </body>
+    </html>
+HTML;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Erebus Kernel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>阅后自焚图片分享</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #1a2a6c;
+            --secondary-color: #b21f1f;
+            --text-color: #333;
+            --light-text: #666;
+            --bg-color: #f8f9fa;
+            --card-bg: #fff;
+            --border-color: #e0e0e0;
+            --error-color: #e53e3e;
+            --success-color: #48bb78;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
-            background: #0a0e17;
-            color: #e0e0ff;
-            font-family: 'Rajdhani', sans-serif;
-            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .app-container {
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            background: white;
             min-height: 100vh;
             position: relative;
-            line-height: 1.6;
+            overflow-x: hidden;
         }
         
-        /* 性能优化的背景效果 */
-        .bg-effects {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
+        /* 头部样式 */
+        .app-header {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 18px 20px;
+            text-align: center;
+            position: relative;
         }
         
-        #particles-js {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+        .app-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 5px;
         }
         
-        /* 移除网格背景，改用更轻量的渐变效果 */
-        .light-effects {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(64, 224, 208, 0.15) 0%, transparent 25%),
-                radial-gradient(circle at 80% 70%, rgba(255, 0, 128, 0.15) 0%, transparent 25%);
-            z-index: 2;
-            animation: bgPulse 15s infinite alternate;
-        }
-        
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, 
-                rgba(255, 255, 255, 0.03) 50%, 
-                rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 10;
-            animation: scanline 8s linear infinite;
-            opacity: 0.1;
-        }
-        
-        .container {
-            max-width: 1200px;
+        .app-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            max-width: 400px;
             margin: 0 auto;
-            padding: 0 20px;
-            position: relative;
-            z-index: 20;
         }
         
-        header {
-            padding: 40px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(64, 224, 208, 0.3);
-            position: relative;
-        }
-        
-        .logo {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 0 10px #40e0d0;
-            letter-spacing: 2px;
-            position: relative;
-            display: inline-block;
-        }
-        
-        .logo::after {
-            content: '';
+        .header-icon {
             position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #40e0d0, transparent);
-            animation: scanline 3s linear infinite;
+            top: 15px;
+            right: 15px;
+            font-size: 2rem;
+            opacity: 0.2;
         }
         
-        .logo span {
-            display: inline-block;
-            animation: textGlow 2s infinite;
+        /* 主要内容区 */
+        .main-content {
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
         }
         
-        .logo span:nth-child(1) { animation-delay: 0.1s; }
-        .logo span:nth-child(2) { animation-delay: 0.2s; }
-        .logo span:nth-child(3) { animation-delay: 0.3s; }
-        .logo span:nth-child(4) { animation-delay: 0.4s; }
-        .logo span:nth-child(5) { animation-delay: 0.5s; }
-        .logo span:nth-child(6) { animation-delay: 0.6s; }
-        .logo span:nth-child(7) { animation-delay: 0.7s; }
-        .logo span:nth-child(8) { animation-delay: 0.8s; }
-        
-        nav ul {
-            display: flex;
-            list-style: none;
-        }
-        
-        nav ul li {
-            margin-left: 40px;
-            position: relative;
-        }
-        
-        nav ul li a {
-            color: #b0b0ff;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-            padding: 5px 0;
-        }
-        
-        nav ul li a:hover {
-            color: #40e0d0;
-        }
-        
-        nav ul li a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #40e0d0, #ff0080);
-            transition: width 0.5s ease;
-        }
-        
-        nav ul li a:hover::after {
-            width: 100%;
-        }
-        
-        .hero {
-            padding: 100px 0;
-            text-align: center;
-            position: relative;
-        }
-        
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 60px;
-            font-weight: 700;
-            margin-bottom: 30px;
-            background: linear-gradient(45deg, #40e0d0, #ff0080, #40e0d0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            background-size: 200% auto;
-            animation: gradient 3s linear infinite;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            position: relative;
-            display: inline-block;
-        }
-        
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 10%;
-            width: 80%;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #40e0d0, #ff0080, transparent);
-            border-radius: 100%;
-            filter: blur(2px);
-            animation: pulseWidth 4s infinite ease-in-out;
-        }
-        
-        .subtitle {
-            font-size: 24px;
-            max-width: 700px;
-            margin: 0 auto 50px;
-            color: #a0a0ee;
-            line-height: 1.6;
-            animation: fadeInUp 1.5s ease-out;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            padding: 15px 40px;
-            background: transparent;
-            border: 2px solid #40e0d0;
-            color: #40e0d0;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            z-index: 1;
-            animation: pulseBorder 2s infinite;
-        }
-        
-        .cta-button:hover {
-            color: #0a0e17;
-        }
-        
-        .cta-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: #40e0d0;
-            transition: all 0.4s ease;
-            z-index: -1;
-        }
-        
-        .cta-button:hover::before {
-            left: 0;
-        }
-        
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin: 100px 0;
-        }
-        
-        .feature-card {
-            background: rgba(16, 21, 36, 0.7);
-            border: 1px solid rgba(64, 224, 208, 0.2);
-            border-radius: 15px;
-            padding: 30px;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            transform: translateZ(0); /* 启用GPU加速 */
-            animation: cardAppear 1s ease-out;
-        }
-        
-        .feature-card:nth-child(2) {
-            animation-delay: 0.3s;
-        }
-        
-        .feature-card:nth-child(3) {
-            animation-delay: 0.6s;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.4);
-            border-color: rgba(64, 224, 208, 0.5);
-        }
-        
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(64, 224, 208, 0.1), transparent);
-            transform: translateX(-100%);
-        }
-        
-        .feature-card:hover::before {
-            animation: shine 1.5s ease;
-        }
-        
-        .feature-icon {
-            font-size: 40px;
+        /* 上传区域 */
+        .upload-section {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 20px;
             margin-bottom: 20px;
-            color: #40e0d0;
-            text-shadow: 0 0 10px rgba(64, 224, 208, 0.5);
-            animation: iconPulse 3s infinite ease-in-out;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
         }
         
-        .feature-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 24px;
-            margin-bottom: 15px;
-            color: #fff;
-        }
-        
-        .feature-desc {
-            color: #a0a0ee;
-            line-height: 1.6;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 40px 0;
-            margin-top: 100px;
-            border-top: 1px solid rgba(64, 224, 208, 0.3);
-            position: relative;
-        }
-        
-        footer::before {
-            content: '';
-            position: absolute;
-            top: -1px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #40e0d0, transparent);
-        }
-        
-        /* 动画定义 - 优化性能 */
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        @keyframes scanline {
-            0% { transform: translateY(-100px); }
-            100% { transform: translateY(100vh); }
-        }
-        
-        @keyframes shine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        @keyframes bgPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 0.8; }
-        }
-        
-        @keyframes pulseWidth {
-            0%, 100% { width: 80%; left: 10%; }
-            50% { width: 60%; left: 20%; }
-        }
-        
-        @keyframes pulseBorder {
-            0%, 100% { box-shadow: 0 0 5px rgba(64, 224, 208, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(64, 224, 208, 0.8); }
-        }
-        
-        @keyframes textGlow {
-            0%, 100% { text-shadow: 0 0 10px #40e0d0; }
-            50% { text-shadow: 0 0 20px #40e0d0, 0 0 30px #40e0d0; }
-        }
-        
-        @keyframes iconPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes cardAppear {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 40px;
-            }
-            
-            .subtitle {
-                font-size: 18px;
-            }
-            
-            nav ul li {
-                margin-left: 20px;
-            }
-            
-            .features {
-                grid-template-columns: 1fr;
-            }
-            
-            header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            nav ul {
-                margin-top: 20px;
-                justify-content: center;
-            }
-        }
-        
-        /* ================== 公告弹窗（覆盖主内容）CSS ================== */
-        .ios-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.6);
+        .section-title {
             display: flex;
-            justify-content: center;
             align-items: center;
-            z-index: 99999; /* 确保覆盖所有内容 */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 220ms ease, visibility 220ms ease;
-            -webkit-backdrop-filter: blur(4px);
-            backdrop-filter: blur(4px);
+            gap: 10px;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-weight: 600;
         }
-        .ios-modal-overlay.active { opacity: 1; visibility: visible; }
-        .ios-modal {
-            width: 360px;
-            max-width: calc(100% - 40px);
-            background: linear-gradient(180deg, rgba(10,14,23,0.98), rgba(15,20,35,0.96));
+        
+        .section-title i {
+            background: var(--primary-color);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+        
+        /* 文件上传区域 */
+        .file-input {
+            position: relative;
+            border: 2px dashed var(--border-color);
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-            color: #e6f7ff;
-            transform: translateY(16px) scale(0.98);
-            opacity: 0;
-            transition: transform 260ms cubic-bezier(.2,.9,.3,1.1), opacity 260ms ease;
+            padding: 30px 15px;
+            text-align: center;
+            transition: all 0.2s;
+            background: #f8fafc;
+            cursor: pointer;
             overflow: hidden;
-            border: 1px solid rgba(64,224,208,0.06);
-            z-index: 100000; /* 确保弹窗在最上层 */
         }
-        .ios-modal-overlay.active .ios-modal { transform: translateY(0) scale(1); opacity: 1; }
-        .ios-modal-header { padding: 18px 18px 8px; text-align: left; }
-        .ios-modal-title { font-family: 'Orbitron', sans-serif; font-weight:700; font-size:20px; color:#ffffff; margin-bottom:2px; }
-        .ios-modal-subtitle { font-size:12px; color:#9fbecf; }
-        .ios-modal-body { padding:16px 18px 6px; color:#dbeeff; font-size:15px; line-height:1.45; }
-        .ios-modal-footer { display:flex; border-top:1px solid rgba(255,255,255,0.03); margin-top:12px; justify-content:center; padding-bottom:12px; }
-        .ios-modal-button { flex: none; background: none; border: none; padding: 10px 14px; font-size:15px; cursor: pointer; }
-        .ios-modal-button.confirm {
-            color: #0a0e17;
-            background: linear-gradient(90deg,#40e0d0,#ff0080);
-            border-radius: 6px;
-            min-width: 140px;
-            font-weight: 700;
+        
+        .file-input:hover {
+            border-color: var(--primary-color);
         }
-        @media (max-width:480px) { .ios-modal { width: 92%; } }
-
-        /* ========== 禁止主内容交互（当 modal 打开时） ========== */
-        body.modal-open { overflow: hidden !important; }
-        /* 禁止 body 下除了 overlay 以外的直接子元素的指针事件、触摸与选取 */
-        body.modal-open > *:not(.ios-modal-overlay) {
-            pointer-events: none !important;
-            user-select: none !important;
-            -webkit-user-select: none !important;
-            touch-action: none !important;
-            filter: saturate(0.95) brightness(0.96); /* 视觉可选微弱暗化 */
+        
+        .file-input i {
+            font-size: 2.2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .file-input p {
+            margin-bottom: 10px;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+        
+        .file-input .btn {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        /* 计数器样式 */
+        .counter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .counter-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .counter-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            text-align: center;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+        }
+        
+        .counter-input input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        
+        .counter-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .counter-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* 提交按钮 */
+        .submit-btn {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 14px 0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(26, 42, 108, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .submit-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* 结果区域 */
+        .result-section {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+        
+        .result-section.active {
+            display: block;
+        }
+        
+        .link-box {
+            background: #f0f4f8;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 15px;
+            border: 2px dashed var(--border-color);
+        }
+        
+        .link-box p {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .link-input {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .link-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            background: white;
+            width: 100%;
+        }
+        
+        .copy-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .copy-btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* 信息卡片 */
+        .info-section {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .info-card {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .info-card i {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .info-card h3 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+        
+        .info-card p {
+            font-size: 0.8rem;
+            color: var(--light-text);
+        }
+        
+        /* 错误提示 */
+        .error {
+            background: #fff5f5;
+            color: var(--error-color);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 3px solid var(--error-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        /* 页脚 */
+        .app-footer {
+            text-align: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            color: var(--light-text);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* 响应式调整 */
+        @media (min-width: 500px) {
+            .app-container {
+                max-width: 500px;
+                margin: 10px auto;
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                min-height: calc(100vh - 20px);
+            }
+            
+            .link-input {
+                flex-direction: row;
+            }
+            
+            .copy-btn {
+                width: auto;
+                padding: 12px 20px;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
         }
     </style>
 </head>
 <body>
-<!-- 在线背景音乐：点击任意处后自动播放 -->
-<audio id="bgMusic" src="https://music.163.com/song/media/outer/url?id=2755803184.mp3" loop muted autoplay></audio>
-<script>
-  const bgMusic = document.getElementById('bgMusic');
-  bgMusic.volume = 0.6;
-  const once = () => {
-    bgMusic.muted = false;
-    bgMusic.play().catch(() => {});
-    document.removeEventListener('click', once);
-    document.removeEventListener('touchstart', once);
-  };
-  document.addEventListener('click', once);
-  document.addEventListener('touchstart', once);
-</script>
-</body>
-
-
-    <div class="bg-effects">
-        <div id="particles-js"></div>
-        <div class="light-effects"></div>
-    </div>
-    
-    <div class="scanlines"></div>
-    
-    <div class="container">
-        <header>
-<div class="logo"><span>E</span><span>R</span><span>E</span><span>B</span><span>U</span><span>S</span></div>
-            <nav>
-                <ul>
-                    <li><a href="#">首页</a></li>
-                    <li><a href="#">联系我们</a></li>
-                </ul>
-            </nav>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <h1>阅后自焚图片分享</h1>
+            <p>上传图片并设置访问次数，达到次数后自动销毁</p>
         </header>
         
-        <section class="hero">
-  <h1>未来科技 触手可及</h1>
-  <p class="subtitle">
-    Erebus Kernel致力于前沿技术创新，为用户提供绝对安全的辅助保障，重新定义行业标准
-  </p>
-  <a href="https://www.123912.com/s/Noy8Vv-6plWA" class="cta-button" target="_blank" rel="noopener">立即下载</a>
-</section>
-
-        <section class="features">
-            <div class="feature-card">
-                <div class="feature-icon">&#9786;</div>
-                <h3 class="feature-title">人物视觉</h3>
-                <p class="feature-desc">利用GUI绘图原理，实现超越传统计算的突破性性能，解决最复杂的计算问题。</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">&#9883;</div>
-                <h3 class="feature-title">自动瞄准</h3>
-                <p class="feature-desc">先进的陀螺仪算法，自适应学习系统，为用户提供智能瞄准支持和自动化解决方案。</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">&#9876;</div>
-                <h3 class="feature-title">物资视觉</h3>
-                <p class="feature-desc">先进自定义架构，实现前所未有的模式识别和预测能力。</p>
-            </div>
-        </section>
-    </div>
-
-    
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 QUANTECH 量子科技. 版权所有.</p>
-        </div>
-    </footer>
-    
-    <!-- 添加弹窗HTML结构 -->
-    <div class="ios-modal-overlay" id="iosModal" aria-hidden="true">
-        <div class="ios-modal">
-            <div class="ios-modal-header">
-                <h2 class="ios-modal-title">重要公告</h2>
-                <p class="ios-modal-subtitle">Erebus 最新动态</p>
-            </div>
-            <div class="ios-modal-body">
-                                <p>Erebus Kernel即将进行全面升级！新版本将引入量子AI算法和先进计算模块，为您带来前所未有的体验。</p>
-            </div>
-            <div class="ios-modal-footer">
-                <button class="ios-modal-button confirm" id="modalConfirm">我知道了</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 粒子效果脚本 -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script>
-        // 初始化粒子系统 - 优化性能版本
-        document.addEventListener('DOMContentLoaded', function() {
-            particlesJS('particles-js', {
-                "particles": {
-                    "number": {
-                        "value": 80, // 减少粒子数量
-                        "density": {
-                            "enable": true,
-                            "value_area": 800
-                        }
-                    },
-                    "color": {
-                        "value": "#40e0d0"
-                    },
-                    "shape": {
-                        "type": "circle"
-                    },
-                    "opacity": {
-                        "value": 0.5,
-                        "random": true,
-                        "anim": {
-                            "enable": true,
-                            "speed": 1,
-                            "opacity_min": 0.1,
-                            "sync": false
-                        }
-                    },
-                    "size": {
-                        "value": 3,
-                        "random": true,
-                        "anim": {
-                            "enable": true,
-                            "speed": 2, // 降低动画速度
-                            "size_min": 0.1,
-                            "sync": false
-                        }
-                    },
-                    "line_linked": {
-                        "enable": true,
-                        "distance": 150,
-                        "color": "#40e0d0",
-                        "opacity": 0.4,
-                        "width": 1
-                    },
-                    "move": {
-                        "enable": true,
-                        "speed": 2, // 降低移动速度
-                        "direction": "none",
-                        "random": true,
-                        "straight": false,
-                        "out_mode": "out",
-                        "bounce": false
-                    }
-                },
-                "interactivity": {
-                    "detect_on": "canvas",
-                    "events": {
-                        "onhover": {
-                            "enable": true,
-                            "mode": "grab"
-                        },
-                        "onclick": {
-                            "enable": true,
-                            "mode": "push"
-                        },
-                        "resize": true
-                    },
-                    "modes": {
-                        "grab": {
-                            "distance": 140,
-                            "line_linked": {
-                                "opacity": 1
-                            }
-                        },
-                        "push": {
-                            "particles_nb": 3 // 减少点击时产生的粒子
-                        }
-                    }
-                },
-                "retina_detect": true
-            });
-            
-            // 添加卡片悬停效果 - 简化版本
-            const cards = document.querySelectorAll('.feature-card');
-            cards.forEach(card => {
-                card.addEventListener('mousemove', function(e) {
-                    const rect = this.getBoundingClientRect();
-                    const hWidth = rect.width / 2;
-                    const hHeight = rect.height / 2;
-                    
-                    const angleY = (e.clientX - rect.left - hWidth) / 20;
-                    const angleX = (rect.top + hHeight - e.clientY) / 20;
-                    
-                    this.style.transform = `translateY(-10px) rotateX(${angleX}deg) rotateY(${angleY}deg)`;
-                });
+        <main class="main-content">
+            <section class="upload-section fade-in">
+                <h2 class="section-title">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>上传图片</span>
+                </h2>
                 
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
-                });
-            });
-        });
-    </script>
-       <!-- ====== 弹窗控制脚本（单确认按钮，禁止主内容交互，focus-trap） ====== -->
+                <form method="POST" enctype="multipart/form-data" id="upload-form">
+                    <div class="form-group">
+                        <label for="file">选择图片文件</label>
+                        <div class="file-input" id="file-input-area">
+                            <i class="fas fa-file-image"></i>
+                            <p>点击或拖拽文件到此处</p>
+                            <span class="btn">选择文件</span>
+                            <input type="file" name="file" id="file" required accept="image/*">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="views">设置最大访问次数 (1-999)</label>
+                        <div class="counter-container">
+                            <div class="counter-input">
+                                <button type="button" class="counter-btn minus">-</button>
+                                <input type="number" name="views" id="views" value="1" min="1" max="999" required>
+                                <button type="button" class="counter-btn plus">+</button>
+                            </div>
+                            <small style="color: var(--light-text);">达到设定次数后文件将自动销毁</small>
+                        </div>
+                    </div>
+                    
+                    <?php if (!empty($error)): ?>
+                        <div class="error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span><?= htmlspecialchars($error) ?></span>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-fire"></i> 生成自焚链接
+                    </button>
+                </form>
+            </section>
+            
+            <section class="result-section <?= !empty($link) ? 'active fade-in' : '' ?>">
+                <h2 class="section-title">
+                    <i class="fas fa-link"></i>
+                    <span>分享链接</span>
+                </h2>
+                
+                <p>您的图片已上传成功！此链接在访问 <strong><?= isset($maxViews) ? $maxViews : 1 ?></strong> 次后将自动销毁。</p>
+                
+                <div class="link-box">
+                    <p>复制以下链接分享给他人：</p>
+                    <div class="link-input">
+                        <input type="text" id="generated-link" value="<?= !empty($link) ? htmlspecialchars($link) : '' ?>" readonly>
+                        <button class="copy-btn" id="copy-btn">复制链接</button>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="info-section fade-in">
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    <span>使用说明</span>
+                </h2>
+                
+                <div class="info-grid">
+                    <div class="info-card">
+                        <i class="fas fa-upload"></i>
+                        <h3>上传图片</h3>
+                        <p>选择要分享的图片</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <i class="fas fa-cog"></i>
+                        <h3>设置次数</h3>
+                        <p>设置允许访问次数</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <i class="fas fa-share-alt"></i>
+                        <h3>分享链接</h3>
+                        <p>复制生成的链接</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <i class="fas fa-fire"></i>
+                        <h3>自动销毁</h3>
+                        <p>达到次数自动删除</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="app-footer">
+            <p>© <?= date('Y') ?> 阅后自焚图片分享系统 | 所有文件将在达到访问次数后自动销毁</p>
+        </footer>
+    </div>
+    
     <script>
-        (function() {
-            const modalOverlay = document.getElementById('iosModal');
-            const dialog = modalOverlay.querySelector('.ios-modal');
-            const modalConfirm = document.getElementById('modalConfirm');
-
-            // body 下除了 overlay 本身以外的节点（用于设置 inert / aria-hidden）
-            const mainNodes = Array.from(document.body.children).filter(n => n !== modalOverlay);
-
-            const FOCUSABLE_SELECTORS = [
-                'a[href]',
-                'area[href]',
-                'input:not([disabled])',
-                'select:not([disabled])',
-                'textarea:not([disabled])',
-                'button:not([disabled])',
-                'iframe',
-                'object',
-                'embed',
-                '[contenteditable]',
-                '[tabindex]:not([tabindex^="-"])'
-            ].join(',');
-
-            let previouslyFocused = null;
-            let keydownHandler = null;
-
-            function setInert(node, value) {
-                try {
-                    if (value) {
-                        node.setAttribute('inert', '');
-                        node.inert = true;
-                    } else {
-                        node.removeAttribute('inert');
-                        node.inert = false;
-                    }
-                } catch (e) {
-                    try {
-                        if (value) node.setAttribute('data-inert-fallback', 'true');
-                        else node.removeAttribute('data-inert-fallback');
-                    } catch (ee) {}
-                }
+        // 计数器功能
+        const minusBtn = document.querySelector('.minus');
+        const plusBtn = document.querySelector('.plus');
+        const viewsInput = document.getElementById('views');
+        
+        minusBtn.addEventListener('click', function() {
+            let value = parseInt(viewsInput.value) || 1;
+            if (value > 1) {
+                viewsInput.value = value - 1;
             }
-
-            function disableMainContent() {
-                document.body.classList.add('modal-open');
-                mainNodes.forEach(n => {
-                    n.setAttribute('aria-hidden', 'true');
-                    setInert(n, true);
-                });
+        });
+        
+        plusBtn.addEventListener('click', function() {
+            let value = parseInt(viewsInput.value) || 1;
+            if (value < 999) {
+                viewsInput.value = value + 1;
             }
-
-            function enableMainContent() {
-                document.body.classList.remove('modal-open');
-                mainNodes.forEach(n => {
-                    n.removeAttribute('aria-hidden');
-                    setInert(n, false);
-                });
+        });
+        
+        // 文件上传区域交互
+        const fileInput = document.getElementById('file');
+        const fileInputArea = document.getElementById('file-input-area');
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const fileName = this.files[0].name.length > 20 
+                    ? this.files[0].name.substring(0, 17) + '...' 
+                    : this.files[0].name;
+                
+                fileInputArea.innerHTML = `
+                    <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                    <p>${fileName}</p>
+                    <span class="btn">重新选择</span>
+                `;
+                fileInputArea.style.borderColor = 'var(--success-color)';
+                fileInputArea.style.backgroundColor = '#f0fff4';
+                
+                // 重新添加文件输入
+                const newInput = document.createElement('input');
+                newInput.type = 'file';
+                newInput.name = 'file';
+                newInput.id = 'file';
+                newInput.required = true;
+                newInput.accept = 'image/*';
+                newInput.style.position = 'absolute';
+                newInput.style.top = '0';
+                newInput.style.left = '0';
+                newInput.style.width = '100%';
+                newInput.style.height = '100%';
+                newInput.style.opacity = '0';
+                newInput.style.cursor = 'pointer';
+                
+                fileInputArea.appendChild(newInput);
+                newInput.addEventListener('change', fileInput.onchange);
             }
-
-            function focusFirstDescendant(element) {
-                const focusable = Array.from(element.querySelectorAll(FOCUSABLE_SELECTORS)).filter(el => {
-                    // 可见性检测：offsetWidth/Height > 0 或当前 active element
-                    return (el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement);
-                });
-                if (focusable.length) {
-                    focusable[0].focus();
-                    return true;
-                }
-                element.setAttribute('tabindex', '-1');
-                element.focus();
-                return false;
+        });
+        
+        // 拖拽上传功能
+        fileInputArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileInputArea.style.borderColor = 'var(--primary-color)';
+            fileInputArea.style.backgroundColor = '#edf2f7';
+        });
+        
+        fileInputArea.addEventListener('dragleave', () => {
+            fileInputArea.style.borderColor = 'var(--border-color)';
+            fileInputArea.style.backgroundColor = '#f8fafc';
+        });
+        
+        fileInputArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileInputArea.style.borderColor = 'var(--border-color)';
+            fileInputArea.style.backgroundColor = '#f8fafc';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
             }
-
-            function trapFocus(e) {
-                if (e.key !== 'Tab') return;
-
-                const focusable = Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTORS)).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
-                if (focusable.length === 0) {
-                    e.preventDefault();
-                    return;
-                }
-
-                const first = focusable[0];
-                const last = focusable[focusable.length - 1];
-                if (e.shiftKey) {
-                    if (document.activeElement === first || dialog === document.activeElement) {
-                        e.preventDefault();
-                        last.focus();
-                    }
-                } else {
-                    if (document.activeElement === last) {
-                        e.preventDefault();
-                        first.focus();
-                    }
-                }
-            }
-
-            function showModal() {
-                previouslyFocused = document.activeElement;
-                disableMainContent();
-                modalOverlay.classList.add('active');
-                modalOverlay.setAttribute('aria-hidden', 'false');
-
-                // 把焦点放到 modal 内
+        });
+        
+        // 复制链接功能
+        const copyBtn = document.getElementById('copy-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', function() {
+                const linkInput = document.getElementById('generated-link');
+                linkInput.select();
+                document.execCommand('copy');
+                
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '已复制!';
+                copyBtn.style.background = 'var(--success-color)';
+                
                 setTimeout(() => {
-                    focusFirstDescendant(dialog);
-                }, 10);
-
-                // 全局按键处理：ESC 关闭，Tab 循环（捕获阶段）
-                keydownHandler = function(e) {
-                    if (e.key === 'Escape') {
-                        hideModal();
-                    } else {
-                        trapFocus(e);
-                    }
-                };
-                document.addEventListener('keydown', keydownHandler, true);
-            }
-
-            function hideModal() {
-                modalOverlay.classList.remove('active');
-                modalOverlay.setAttribute('aria-hidden', 'true');
-                enableMainContent();
-
-                // 恢复先前焦点
-                if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
-                    previouslyFocused.focus();
-                }
-
-                if (keydownHandler) {
-                    document.removeEventListener('keydown', keydownHandler, true);
-                    keydownHandler = null;
-                }
-            }
-
-            // 页面加载后短延迟显示（如需立即显示将 600 改为 0）
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(showModal, 600);
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.background = 'var(--primary-color)';
+                }, 2000);
             });
-
-            // 点击遮罩区域（不是 modal 内容）关闭
-            modalOverlay.addEventListener('click', function(e) {
-                if (e.target === modalOverlay) {
-                    hideModal();
-                }
-            });
-
-            // 确认按钮（关闭弹窗；你可以在回调里加入跳转逻辑）
-            modalConfirm.addEventListener('click', function() {
-                hideModal();
-                // 如果需要跳转，把下面这行替换为实际逻辑，例如：
-                // window.location.href = '/announcement-details.html';
-            });
-        })();
+        }
+        
+        // 如果有链接生成，滚动到结果区域
+        <?php if (!empty($link)): ?>
+            setTimeout(() => {
+                document.querySelector('.result-section').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 300);
+        <?php endif; ?>
     </script>
 </body>
 </html>
