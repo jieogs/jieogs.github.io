@@ -3,53 +3,791 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全屏视频播放页</title>
+    <title>Erebus Kernel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            overflow: hidden; /* 隐藏滚动条 */
         }
-        body, html {
-            height: 100vh;
-            background-color: #000;
+        
+        body {
+            background: #0a0e17;
+            color: #e0e0ff;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+            line-height: 1.6;
         }
-        .fullscreen-video {
+        
+        /* 性能优化的背景效果 */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover; /* 填充全屏且保持比例 */
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        /* 移除网格背景，改用更轻量的渐变效果 */
+        .light-effects {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(64, 224, 208, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 128, 0.15) 0%, transparent 25%);
+            z-index: 2;
+            animation: bgPulse 15s infinite alternate;
+        }
+        
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(255, 255, 255, 0.03) 50%, 
+                rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 10;
+            animation: scanline 8s linear infinite;
+            opacity: 0.1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 20;
+        }
+        
+        header {
+            padding: 40px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(64, 224, 208, 0.3);
+            position: relative;
+        }
+        
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px #40e0d0;
+            letter-spacing: 2px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #40e0d0, transparent);
+            animation: scanline 3s linear infinite;
+        }
+        
+        .logo span {
+            display: inline-block;
+            animation: textGlow 2s infinite;
+        }
+        
+        .logo span:nth-child(1) { animation-delay: 0.1s; }
+        .logo span:nth-child(2) { animation-delay: 0.2s; }
+        .logo span:nth-child(3) { animation-delay: 0.3s; }
+        .logo span:nth-child(4) { animation-delay: 0.4s; }
+        .logo span:nth-child(5) { animation-delay: 0.5s; }
+        .logo span:nth-child(6) { animation-delay: 0.6s; }
+        .logo span:nth-child(7) { animation-delay: 0.7s; }
+        .logo span:nth-child(8) { animation-delay: 0.8s; }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 40px;
+            position: relative;
+        }
+        
+        nav ul li a {
+            color: #b0b0ff;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 5px 0;
+        }
+        
+        nav ul li a:hover {
+            color: #40e0d0;
+        }
+        
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #40e0d0, #ff0080);
+            transition: width 0.5s ease;
+        }
+        
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+        
+        .hero {
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 60px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #40e0d0, #ff0080, #40e0d0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 200% auto;
+            animation: gradient 3s linear infinite;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 10%;
+            width: 80%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #40e0d0, #ff0080, transparent);
+            border-radius: 100%;
+            filter: blur(2px);
+            animation: pulseWidth 4s infinite ease-in-out;
+        }
+        
+        .subtitle {
+            font-size: 24px;
+            max-width: 700px;
+            margin: 0 auto 50px;
+            color: #a0a0ee;
+            line-height: 1.6;
+            animation: fadeInUp 1.5s ease-out;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: transparent;
+            border: 2px solid #40e0d0;
+            color: #40e0d0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            z-index: 1;
+            animation: pulseBorder 2s infinite;
+        }
+        
+        .cta-button:hover {
+            color: #0a0e17;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: #40e0d0;
+            transition: all 0.4s ease;
+            z-index: -1;
+        }
+        
+        .cta-button:hover::before {
+            left: 0;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 100px 0;
+        }
+        
+        .feature-card {
+            background: rgba(16, 21, 36, 0.7);
+            border: 1px solid rgba(64, 224, 208, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transform: translateZ(0); /* 启用GPU加速 */
+            animation: cardAppear 1s ease-out;
+        }
+        
+        .feature-card:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        
+        .feature-card:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.4);
+            border-color: rgba(64, 224, 208, 0.5);
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(64, 224, 208, 0.1), transparent);
+            transform: translateX(-100%);
+        }
+        
+        .feature-card:hover::before {
+            animation: shine 1.5s ease;
+        }
+        
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+            color: #40e0d0;
+            text-shadow: 0 0 10px rgba(64, 224, 208, 0.5);
+            animation: iconPulse 3s infinite ease-in-out;
+        }
+        
+        .feature-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        
+        .feature-desc {
+            color: #a0a0ee;
+            line-height: 1.6;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 100px;
+            border-top: 1px solid rgba(64, 224, 208, 0.3);
+            position: relative;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #40e0d0, transparent);
+        }
+        
+        /* 动画定义 - 优化性能 */
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(-100px); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+        
+        @keyframes pulseWidth {
+            0%, 100% { width: 80%; left: 10%; }
+            50% { width: 60%; left: 20%; }
+        }
+        
+        @keyframes pulseBorder {
+            0%, 100% { box-shadow: 0 0 5px rgba(64, 224, 208, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(64, 224, 208, 0.8); }
+        }
+        
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 10px #40e0d0; }
+            50% { text-shadow: 0 0 20px #40e0d0, 0 0 30px #40e0d0; }
+        }
+        
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 40px;
+            }
+            
+            .subtitle {
+                font-size: 18px;
+            }
+            
+            nav ul li {
+                margin-left: 20px;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 20px;
+                justify-content: center;
+            }
+        }
+        
+        /* ================== 公告弹窗（覆盖主内容）CSS ================== */
+        .ios-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999; /* 确保覆盖所有内容 */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 220ms ease, visibility 220ms ease;
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+        .ios-modal-overlay.active { opacity: 1; visibility: visible; }
+        .ios-modal {
+            width: 360px;
+            max-width: calc(100% - 40px);
+            background: linear-gradient(180deg, rgba(10,14,23,0.98), rgba(15,20,35,0.96));
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            color: #e6f7ff;
+            transform: translateY(16px) scale(0.98);
+            opacity: 0;
+            transition: transform 260ms cubic-bezier(.2,.9,.3,1.1), opacity 260ms ease;
+            overflow: hidden;
+            border: 1px solid rgba(64,224,208,0.06);
+            z-index: 100000; /* 确保弹窗在最上层 */
+        }
+        .ios-modal-overlay.active .ios-modal { transform: translateY(0) scale(1); opacity: 1; }
+        .ios-modal-header { padding: 18px 18px 8px; text-align: left; }
+        .ios-modal-title { font-family: 'Orbitron', sans-serif; font-weight:700; font-size:20px; color:#ffffff; margin-bottom:2px; }
+        .ios-modal-subtitle { font-size:12px; color:#9fbecf; }
+        .ios-modal-body { padding:16px 18px 6px; color:#dbeeff; font-size:15px; line-height:1.45; }
+        .ios-modal-footer { display:flex; border-top:1px solid rgba(255,255,255,0.03); margin-top:12px; justify-content:center; padding-bottom:12px; }
+        .ios-modal-button { flex: none; background: none; border: none; padding: 10px 14px; font-size:15px; cursor: pointer; }
+        .ios-modal-button.confirm {
+            color: #0a0e17;
+            background: linear-gradient(90deg,#40e0d0,#ff0080);
+            border-radius: 6px;
+            min-width: 140px;
+            font-weight: 700;
+        }
+        @media (max-width:480px) { .ios-modal { width: 92%; } }
+
+        /* ========== 禁止主内容交互（当 modal 打开时） ========== */
+        body.modal-open { overflow: hidden !important; }
+        /* 禁止 body 下除了 overlay 以外的直接子元素的指针事件、触摸与选取 */
+        body.modal-open > *:not(.ios-modal-overlay) {
+            pointer-events: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            touch-action: none !important;
+            filter: saturate(0.95) brightness(0.96); /* 视觉可选微弱暗化 */
         }
     </style>
 </head>
 <body>
-    <!-- 嵌入抖音真实视频地址，开启自动播放、循环、静音（兼容浏览器限制） -->
-    <video 
-        class="fullscreen-video"
-        controls
-        autoplay
-        loop
-        muted
-        playsinline
-        webkit-playsinline
-    >
-        <source src="https://v26-cold.douyinvod.com/1633282950d8d6bc45af4b3298eed81e/6911edab/video/tos/cn/tos-cn-ve-15/oIp7sfMVgXAfR8EZwAQIKuDVCfBe82bqjan9AJ/?a=0&ch=26&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1850&bt=1850&cs=0&ds=6&ft=pEagMPI8ffPdqK~-I1VNvAq-antLjrKH0KMnRka7e9B9UjVhWL6&mime_type=video_mp4&qs=0&rc=OmY1M2U0aDg7aDg6ZjU6ZUBpM2x1OHk5cnRqNjMzNGkzM0A2MWBfMmNfNTUxYmJhYjYwYSNicWhxMmRrY2BhLS1kLS9zcw%3D%3D&btag=c0000e00010000&cquery=100F_100E_103t_100I_100H&dy_q=1762779012&feature_id=f0150a16a324336cda5d6dd0b69ed299&l=20251110205012751D642D176151A5BF30" 
-        type="video/mp4"
-    >
-        您的浏览器不支持HTML5视频播放，请升级浏览器后重试。
-    </video>
+    <div class="bg-effects">
+        <div id="particles-js"></div>
+        <div class="light-effects"></div>
+    </div>
+    
+    <div class="scanlines"></div>
+    
+    <div class="container">
+        <header>
+<div class="logo"><span></span><span></span><span>E</span><span>B</span><span>U</span><span>S</span></div>
+            <nav>
+                <ul>
+                    <li><a href="#">AI</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        <section class="hero">
+<h1>未来科技 触手可及</h1>
+            <p class="subtitle">Erebus Kernel致力于前沿技术创新，为用户提供绝对安全的辅助保障，重新定义行业标准</p>
+            <a href="#" class="cta-button">立即加入</a>
+        </section>
 
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">&#9786;</div>
+                <h3 class="feature-title">木偶动画</h3>
+                <p class="feature-desc">利用Ai绘图原理，实现超越传统计算的突破性性能，解决最复杂的计算问题。</p>
+     </div>
+        </section>
+    </div>
+
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025  天天开心.</p>
+        </div>
+    </footer>
+    
+    <!-- 添加弹窗HTML结构 -->
+    <div class="ios-modal-overlay" id="iosModal" aria-hidden="true">
+        <div class="ios-modal">
+            <div class="ios-modal-header">
+                <h2 class="ios-modal-title">通知</h2>
+                <p class="ios-modal-subtitle"> 最新动态</p>
+            </div>
+            <div class="ios-modal-body">
+                                <p>全面升级！新版本将引入量子AI算法，利用AI制作创造更好的视频，为您带来前所未有的体验。</p>
+            </div>
+            <div class="ios-modal-footer">
+                <button class="ios-modal-button confirm" id="modalConfirm">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 粒子效果脚本 -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // 确保视频全屏播放，适配不同设备
-        const video = document.querySelector('video');
-        // 页面加载完成后尝试请求全屏（可选，增强体验）
-        window.addEventListener('load', () => {
-            if (video.requestFullscreen) {
-                video.requestFullscreen().catch(err => {
-                    console.log('自动全屏失败，可手动点击视频全屏按钮', err);
+        // 初始化粒子系统 - 优化性能版本
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                "particles": {
+                    "number": {
+                        "value": 80, // 减少粒子数量
+                        "density": {
+                            "enable": true,
+                            "value_area": 800
+                        }
+                    },
+                    "color": {
+                        "value": "#40e0d0"
+                    },
+                    "shape": {
+                        "type": "circle"
+                    },
+                    "opacity": {
+                        "value": 0.5,
+                        "random": true,
+                        "anim": {
+                            "enable": true,
+                            "speed": 1,
+                            "opacity_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "size": {
+                        "value": 3,
+                        "random": true,
+                        "anim": {
+                            "enable": true,
+                            "speed": 2, // 降低动画速度
+                            "size_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "line_linked": {
+                        "enable": true,
+                        "distance": 150,
+                        "color": "#40e0d0",
+                        "opacity": 0.4,
+                        "width": 1
+                    },
+                    "move": {
+                        "enable": true,
+                        "speed": 2, // 降低移动速度
+                        "direction": "none",
+                        "random": true,
+                        "straight": false,
+                        "out_mode": "out",
+                        "bounce": false
+                    }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {
+                            "enable": true,
+                            "mode": "grab"
+                        },
+                        "onclick": {
+                            "enable": true,
+                            "mode": "push"
+                        },
+                        "resize": true
+                    },
+                    "modes": {
+                        "grab": {
+                            "distance": 140,
+                            "line_linked": {
+                                "opacity": 1
+                            }
+                        },
+                        "push": {
+                            "particles_nb": 3 // 减少点击时产生的粒子
+                        }
+                    }
+                },
+                "retina_detect": true
+            });
+            
+            // 添加卡片悬停效果 - 简化版本
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach(card => {
+                card.addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const hWidth = rect.width / 2;
+                    const hHeight = rect.height / 2;
+                    
+                    const angleY = (e.clientX - rect.left - hWidth) / 20;
+                    const angleX = (rect.top + hHeight - e.clientY) / 20;
+                    
+                    this.style.transform = `translateY(-10px) rotateX(${angleX}deg) rotateY(${angleY}deg)`;
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+                });
+            });
+        });
+    </script>
+       <!-- ====== 弹窗控制脚本（单确认按钮，禁止主内容交互，focus-trap） ====== -->
+    <script>
+        (function() {
+            const modalOverlay = document.getElementById('iosModal');
+            const dialog = modalOverlay.querySelector('.ios-modal');
+            const modalConfirm = document.getElementById('modalConfirm');
+
+            // body 下除了 overlay 本身以外的节点（用于设置 inert / aria-hidden）
+            const mainNodes = Array.from(document.body.children).filter(n => n !== modalOverlay);
+
+            const FOCUSABLE_SELECTORS = [
+                'a[href]',
+                'area[href]',
+                'input:not([disabled])',
+                'select:not([disabled])',
+                'textarea:not([disabled])',
+                'button:not([disabled])',
+                'iframe',
+                'object',
+                'embed',
+                '[contenteditable]',
+                '[tabindex]:not([tabindex^="-"])'
+            ].join(',');
+
+            let previouslyFocused = null;
+            let keydownHandler = null;
+
+            function setInert(node, value) {
+                try {
+                    if (value) {
+                        node.setAttribute('inert', '');
+                        node.inert = true;
+                    } else {
+                        node.removeAttribute('inert');
+                        node.inert = false;
+                    }
+                } catch (e) {
+                    try {
+                        if (value) node.setAttribute('data-inert-fallback', 'true');
+                        else node.removeAttribute('data-inert-fallback');
+                    } catch (ee) {}
+                }
+            }
+
+            function disableMainContent() {
+                document.body.classList.add('modal-open');
+                mainNodes.forEach(n => {
+                    n.setAttribute('aria-hidden', 'true');
+                    setInert(n, true);
                 });
             }
-        });
+
+            function enableMainContent() {
+                document.body.classList.remove('modal-open');
+                mainNodes.forEach(n => {
+                    n.removeAttribute('aria-hidden');
+                    setInert(n, false);
+                });
+            }
+
+            function focusFirstDescendant(element) {
+                const focusable = Array.from(element.querySelectorAll(FOCUSABLE_SELECTORS)).filter(el => {
+                    // 可见性检测：offsetWidth/Height > 0 或当前 active element
+                    return (el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement);
+                });
+                if (focusable.length) {
+                    focusable[0].focus();
+                    return true;
+                }
+                element.setAttribute('tabindex', '-1');
+                element.focus();
+                return false;
+            }
+
+            function trapFocus(e) {
+                if (e.key !== 'Tab') return;
+
+                const focusable = Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTORS)).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
+                if (focusable.length === 0) {
+                    e.preventDefault();
+                    return;
+                }
+
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey) {
+                    if (document.activeElement === first || dialog === document.activeElement) {
+                        e.preventDefault();
+                        last.focus();
+                    }
+                } else {
+                    if (document.activeElement === last) {
+                        e.preventDefault();
+                        first.focus();
+                    }
+                }
+            }
+
+            function showModal() {
+                previouslyFocused = document.activeElement;
+                disableMainContent();
+                modalOverlay.classList.add('active');
+                modalOverlay.setAttribute('aria-hidden', 'false');
+
+                // 把焦点放到 modal 内
+                setTimeout(() => {
+                    focusFirstDescendant(dialog);
+                }, 10);
+
+                // 全局按键处理：ESC 关闭，Tab 循环（捕获阶段）
+                keydownHandler = function(e) {
+                    if (e.key === 'Escape') {
+                        hideModal();
+                    } else {
+                        trapFocus(e);
+                    }
+                };
+                document.addEventListener('keydown', keydownHandler, true);
+            }
+
+            function hideModal() {
+                modalOverlay.classList.remove('active');
+                modalOverlay.setAttribute('aria-hidden', 'true');
+                enableMainContent();
+
+                // 恢复先前焦点
+                if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+                    previouslyFocused.focus();
+                }
+
+                if (keydownHandler) {
+                    document.removeEventListener('keydown', keydownHandler, true);
+                    keydownHandler = null;
+                }
+            }
+
+            // 页面加载后短延迟显示（如需立即显示将 600 改为 0）
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(showModal, 600);
+            });
+
+            // 点击遮罩区域（不是 modal 内容）关闭
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    hideModal();
+                }
+            });
+
+            // 确认按钮（关闭弹窗；你可以在回调里加入跳转逻辑）
+            modalConfirm.addEventListener('click', function() {
+                hideModal();
+                // 如果需要跳转，把下面这行替换为实际逻辑，例如：
+                // window.location.href = '/announcement-details.html';
+            });
+        })();
     </script>
 </body>
 </html>
