@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全屏视频播放页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow: hidden; /* 隐藏滚动条 */
+        }
+        body, html {
+            height: 100vh;
+            background-color: #000;
+        }
+        .fullscreen-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 填充全屏且保持比例 */
+        }
+    </style>
+</head>
+<body>
+    <!-- 嵌入抖音真实视频地址，开启自动播放、循环、静音（兼容浏览器限制） -->
+    <video 
+        class="fullscreen-video"
+        controls
+        autoplay
+        loop
+        muted
+        playsinline
+        webkit-playsinline
+    >
+        <source src="https://v26-cold.douyinvod.com/1633282950d8d6bc45af4b3298eed81e/6911edab/video/tos/cn/tos-cn-ve-15/oIp7sfMVgXAfR8EZwAQIKuDVCfBe82bqjan9AJ/?a=0&ch=26&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1850&bt=1850&cs=0&ds=6&ft=pEagMPI8ffPdqK~-I1VNvAq-antLjrKH0KMnRka7e9B9UjVhWL6&mime_type=video_mp4&qs=0&rc=OmY1M2U0aDg7aDg6ZjU6ZUBpM2x1OHk5cnRqNjMzNGkzM0A2MWBfMmNfNTUxYmJhYjYwYSNicWhxMmRrY2BhLS1kLS9zcw%3D%3D&btag=c0000e00010000&cquery=100F_100E_103t_100I_100H&dy_q=1762779012&feature_id=f0150a16a324336cda5d6dd0b69ed299&l=20251110205012751D642D176151A5BF30" 
+        type="video/mp4"
+    >
+        您的浏览器不支持HTML5视频播放，请升级浏览器后重试。
+    </video>
+
+    <script>
+        // 确保视频全屏播放，适配不同设备
+        const video = document.querySelector('video');
+        // 页面加载完成后尝试请求全屏（可选，增强体验）
+        window.addEventListener('load', () => {
+            if (video.requestFullscreen) {
+                video.requestFullscreen().catch(err => {
+                    console.log('自动全屏失败，可手动点击视频全屏按钮', err);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
