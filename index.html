@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Erebus Kernel</title>
+    <title>LOVE02</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -79,7 +79,7 @@
         }
         
         header {
-            padding: 40px 0;
+            padding: 30px 0; /* 缩减头部上下内边距 */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -89,7 +89,7 @@
         
         .logo {
             font-family: 'Orbitron', sans-serif;
-            font-size: 28px;
+            font-size: 26px; /* 缩小logo字体 */
             font-weight: 700;
             color: #fff;
             text-shadow: 0 0 10px #40e0d0;
@@ -129,14 +129,14 @@
         }
         
         nav ul li {
-            margin-left: 40px;
+            margin-left: 30px; /* 缩减导航项间距 */
             position: relative;
         }
         
         nav ul li a {
             color: #b0b0ff;
             text-decoration: none;
-            font-size: 18px;
+            font-size: 17px; /* 缩小导航字体 */
             font-weight: 500;
             transition: all 0.3s ease;
             position: relative;
@@ -163,16 +163,16 @@
         }
         
         .hero {
-            padding: 100px 0;
+            padding: 70px 0 50px; /* 大幅缩减英雄区上下内边距 */
             text-align: center;
             position: relative;
         }
         
         h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 60px;
+            font-size: 50px; /* 缩小标题字体 */
             font-weight: 700;
-            margin-bottom: 30px;
+            margin-bottom: 20px; /* 缩减标题下间距 */
             background: linear-gradient(45deg, #40e0d0, #ff0080, #40e0d0);
             -webkit-background-clip: text;
             background-clip: text;
@@ -188,10 +188,10 @@
         h1::after {
             content: '';
             position: absolute;
-            bottom: -10px;
+            bottom: -8px;
             left: 10%;
             width: 80%;
-            height: 4px;
+            height: 3px; /* 减薄下划线 */
             background: linear-gradient(90deg, transparent, #40e0d0, #ff0080, transparent);
             border-radius: 100%;
             filter: blur(2px);
@@ -199,9 +199,9 @@
         }
         
         .subtitle {
-            font-size: 24px;
-            max-width: 700px;
-            margin: 0 auto 50px;
+            font-size: 20px; /* 缩小副标题字体 */
+            max-width: 600px;
+            margin: 0 auto 30px; /* 缩减副标题下间距 */
             color: #a0a0ee;
             line-height: 1.6;
             animation: fadeInUp 1.5s ease-out;
@@ -209,12 +209,12 @@
         
         .cta-button {
             display: inline-block;
-            padding: 15px 40px;
+            padding: 12px 30px; /* 缩减按钮内边距 */
             background: transparent;
             border: 2px solid #40e0d0;
             color: #40e0d0;
             font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
+            font-size: 16px; /* 缩小按钮字体 */
             text-decoration: none;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -247,16 +247,16 @@
         
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin: 100px 0;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 缩小卡片最小宽度 */
+            gap: 20px; /* 缩减卡片间距 */
+            margin: 60px 0; /* 缩减卡片区上下外边距 */
         }
         
         .feature-card {
             background: rgba(16, 21, 36, 0.7);
             border: 1px solid rgba(64, 224, 208, 0.2);
             border-radius: 15px;
-            padding: 30px;
+            padding: 25px; /* 缩减卡片内边距 */
             transition: all 0.4s ease;
             position: relative;
             overflow: hidden;
@@ -295,8 +295,8 @@
         }
         
         .feature-icon {
-            font-size: 40px;
-            margin-bottom: 20px;
+            font-size: 35px; /* 缩小图标尺寸 */
+            margin-bottom: 15px; /* 缩减图标下间距 */
             color: #40e0d0;
             text-shadow: 0 0 10px rgba(64, 224, 208, 0.5);
             animation: iconPulse 3s infinite ease-in-out;
@@ -304,20 +304,21 @@
         
         .feature-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 24px;
-            margin-bottom: 15px;
+            font-size: 22px; /* 缩小卡片标题字体 */
+            margin-bottom: 12px; /* 缩减标题下间距 */
             color: #fff;
         }
         
         .feature-desc {
             color: #a0a0ee;
             line-height: 1.6;
+            font-size: 15px; /* 缩小描述文字 */
         }
         
         footer {
             text-align: center;
-            padding: 40px 0;
-            margin-top: 100px;
+            padding: 30px 0; /* 缩减页脚内边距 */
+            margin-top: 60px; /* 缩减页脚上外边距 */
             border-top: 1px solid rgba(64, 224, 208, 0.3);
             position: relative;
         }
@@ -331,6 +332,10 @@
             width: 200px;
             height: 2px;
             background: linear-gradient(90deg, transparent, #40e0d0, transparent);
+        }
+        
+        footer p {
+            font-size: 15px; /* 缩小页脚文字 */
         }
         
         /* 动画定义 - 优化性能 */
@@ -388,15 +393,15 @@
         /* 响应式设计 */
         @media (max-width: 768px) {
             h1 {
-                font-size: 40px;
+                font-size: 35px;
             }
             
             .subtitle {
-                font-size: 18px;
+                font-size: 17px;
             }
             
             nav ul li {
-                margin-left: 20px;
+                margin-left: 15px;
             }
             
             .features {
@@ -409,7 +414,7 @@
             }
             
             nav ul {
-                margin-top: 20px;
+                margin-top: 15px; /* 缩减导航上间距 */
                 justify-content: center;
             }
         }
@@ -429,6 +434,22 @@
             -webkit-backdrop-filter: blur(4px);
             backdrop-filter: blur(4px);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         .ios-modal-overlay.active { opacity: 1; visibility: visible; }
         .ios-modal {
             width: 360px;
@@ -445,17 +466,17 @@
             z-index: 100000; /* 确保弹窗在最上层 */
         }
         .ios-modal-overlay.active .ios-modal { transform: translateY(0) scale(1); opacity: 1; }
-        .ios-modal-header { padding: 18px 18px 8px; text-align: left; }
-        .ios-modal-title { font-family: 'Orbitron', sans-serif; font-weight:700; font-size:20px; color:#ffffff; margin-bottom:2px; }
-        .ios-modal-subtitle { font-size:12px; color:#9fbecf; }
-        .ios-modal-body { padding:16px 18px 6px; color:#dbeeff; font-size:15px; line-height:1.45; }
-        .ios-modal-footer { display:flex; border-top:1px solid rgba(255,255,255,0.03); margin-top:12px; justify-content:center; padding-bottom:12px; }
-        .ios-modal-button { flex: none; background: none; border: none; padding: 10px 14px; font-size:15px; cursor: pointer; }
+        .ios-modal-header { padding: 16px 16px 6px; text-align: left; } /* 缩减弹窗头部内边距 */
+        .ios-modal-title { font-family: 'Orbitron', sans-serif; font-weight:700; font-size:18px; color:#ffffff; margin-bottom:2px; } /* 缩小弹窗标题 */
+        .ios-modal-subtitle { font-size:11px; color:#9fbecf; }
+        .ios-modal-body { padding:14px 16px 4px; color:#dbeeff; font-size:14px; line-height:1.45; } /* 缩减弹窗内容内边距+缩小字体 */
+        .ios-modal-footer { display:flex; border-top:1px solid rgba(255,255,255,0.03); margin-top:10px; justify-content:center; padding-bottom:10px; } /* 缩减弹窗底部内边距 */
+        .ios-modal-button { flex: none; background: none; border: none; padding: 8px 12px; font-size:14px; cursor: pointer; } /* 缩减按钮内边距+缩小字体 */
         .ios-modal-button.confirm {
             color: #0a0e17;
             background: linear-gradient(90deg,#40e0d0,#ff0080);
             border-radius: 6px;
-            min-width: 140px;
+            min-width: 120px; /* 缩小确认按钮宽度 */
             font-weight: 700;
         }
         @media (max-width:480px) { .ios-modal { width: 92%; } }
@@ -484,33 +505,59 @@
     
     <div class="container">
         <header>
-<div class="logo"><span></span><span></span><span>E</span><span>B</span><span>U</span><span>S</span></div>
-            <nav>
-                <ul>
-                    <li><a href="#">AI</a></li>
-                </ul>
-            </nav>
+<div class="logo"><span></span><span>F</span><span>R</span><span>N</span><span>X</span><span>X</span></div>
+<nav>
+  <ul>
+    <li><a href="#">首页</a></li>
+    <!-- 核心修改：添加 href 跳转链接，target="_blank" 新窗口打开（可选） -->
+    <li><a href="https://qun.qq.com/universal-share/share?ac=1&authKey=%2BUB3h3OQUpHInUa3ap3ofpss8QcTiI0UWWnUh09HB%2Fto2N7el4Yv2JQBenLMFqZR&busi_data=eyJncm91cENvZGUiOiI5MTQwMjg1NDYiLCJ0b2tlbiI6IlZEQzN4dElnakxxZVZLb2tmTVR0TC9BMkh2QThNemFnK2hQV3RqNHRydnh4UG94dXJrZm5BT0tReXFpSDBHUmQiLCJ1aW4iOiIyNTAwMDU2NTIwIn0%3D&data=2tB2eVvjUWMIunVlBKm0koKWw1l0del9M3xuezN-g-BhYdxahDMxP79mOG3-6IIDa8nut85AOGcu5mjqDnaIaw&svctype=4&tempid=h5_group_info" target="_blank">关于我们</a></li>
+    <li><a href="#"></a></li>
+  </ul>
+</nav>
         </header>
         
         <section class="hero">
 <h1>AI二创</h1>
-            <p class="subtitle">LOVE热爱</p>
-            <a href="#" class="cta-button">立即加入</a>
-        </section>
+            <p class="subtitle">FRANXX团队，为爱发电。</p>
 
-        <section class="features">
-            <div class="feature-card">
-                <div class="feature-icon">&#9786;</div>
-                <h3 class="feature-title">木偶动画</h3>
-                <p class="feature-desc">利用Ai绘图原理，实现超越传统计算的突破性性能，解决最复杂的计算问题。</p>
-     </div>
-        </section>
+<section class="features">
+    <div class="feature-card" style="padding: 25px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px;"> <!-- 缩减内部间距 -->
+        <!-- 优化小人图标样式，更醒目 -->
+        <div class="feature-icon" style="font-size: 50px; color: #ff9a9e; text-shadow: 0 0 20px rgba(255, 148, 158, 0.6); animation: iconPulse 3s infinite ease-in-out;">👤</div> <!-- 缩小图标+改用原有动画 -->
+        
+        <!-- 标题增加装饰线 -->
+        <div style="width: 100%;">
+            <h3 class="feature-title" style="font-size: 24px; color: #ffd6e0; margin-bottom: 6px; position: relative;"> <!-- 缩小标题 -->
+                木偶动画
+                <span style="position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 50px; height: 2px; background: #ff9a9e;"></span> <!-- 缩小装饰线 -->
+            </h3>
+        </div>
+        
+        <!-- 描述文字优化排版 -->
+        <p class="feature-desc" style="font-size: 15px; color: #d0c4ff; line-height: 1.7; max-width: 300px; padding: 0 5px;"> <!-- 缩小字体+缩减宽度 -->
+            打破静态局限！将普通图片一键转化为<span style="color: #ff9a9e; font-weight: 500;">灵动鲜活</span>的动态视频，表情、动作自然流畅，轻松实现二次元角色“活”起来～
+        </p>
+        
+        <!-- 新增小标签，强化核心卖点 -->
+        <div style="display: flex; gap: 10px; margin-top: 8px;"> <!-- 缩减标签间距 -->
+            <span style="background: rgba(255, 148, 158, 0.2); color: #ffd6e0; padding: 3px 10px; border-radius: 20px; font-size: 13px;">AI驱动</span> <!-- 缩小标签内边距+字体 -->
+            <span style="background: rgba(161, 140, 209, 0.2); color: #c8b6ff; padding: 3px 10px; border-radius: 20px; font-size: 13px;">一键生成</span>
+            <span style="background: rgba(64, 224, 208, 0.2); color: #8ecae6; padding: 3px 10px; border-radius: 20px; font-size: 13px;">无门槛</span>
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">😊</div> <!-- 替换为可爱笑脸，保持原有样式 -->
+        <h3 class="feature-title">团队成员</h3>
+        <p class="feature-desc">运营:@Chou<br>制作:@阿夜</p> <!-- 用<br>优化换行间距 -->
+    </div>
+</section>
     </div>
 
     
     <footer>
         <div class="container">
-            <p>&copy; 2025  天天开心.</p>
+            <p>&copy; 2025 @Chou 天天开心.</p>
         </div>
     </footer>
     
@@ -522,7 +569,7 @@
                 <p class="ios-modal-subtitle"> 最新动态</p>
             </div>
             <div class="ios-modal-body">
-                                <p>全面升级！新版本将引入量子AI算法，利用AI制作创造更好的视频，为您带来前所未有的体验。</p>
+                <p>欢迎来的FRANXX官网，本团队为新团队，欢迎各位加入~</p>
             </div>
             <div class="ios-modal-footer">
                 <button class="ios-modal-button confirm" id="modalConfirm">我知道了</button>
@@ -530,91 +577,94 @@
         </div>
     </div>
 
-    <!-- 粒子效果脚本 -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script>
-        // 初始化粒子系统 - 优化性能版本
-        document.addEventListener('DOMContentLoaded', function() {
-            particlesJS('particles-js', {
-                "particles": {
-                    "number": {
-                        "value": 80, // 减少粒子数量
-                        "density": {
-                            "enable": true,
-                            "value_area": 800
-                        }
-                    },
-                    "color": {
-                        "value": "#40e0d0"
-                    },
-                    "shape": {
-                        "type": "circle"
-                    },
-                    "opacity": {
-                        "value": 0.5,
-                        "random": true,
-                        "anim": {
-                            "enable": true,
-                            "speed": 1,
-                            "opacity_min": 0.1,
-                            "sync": false
-                        }
-                    },
-                    "size": {
-                        "value": 3,
-                        "random": true,
-                        "anim": {
-                            "enable": true,
-                            "speed": 2, // 降低动画速度
-                            "size_min": 0.1,
-                            "sync": false
-                        }
-                    },
+  <!-- 二次元星空粒子脚本 -->
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    particlesJS('particles-js', {
+        "particles": {
+            "number": {
+                "value": 850, // 星空粒子数量（密度适中）
+                "density": {
+                    "enable": true,
+                    "value_area": 1200 // 分散分布，模拟星空
+                }
+            },
+            "color": {
+                "value": ["#ffd6e0", "#c8b6ff", "#e0d4ff", "#ff9a9e", "#a18cd1"] // 二次元星空色系
+            },
+            "shape": {
+                "type": ["circle", "star"], // 圆形（恒星）+ 星形（亮星）
+                "star": {
+                    "sides": 5 // 五角星形状
+                }
+            },
+            "opacity": {
+                "value": 0.7,
+                "random": true, // 明暗不一，模拟星空层次感
+                "anim": {
+                    "enable": true,
+                    "speed": 0.5, // 缓慢闪烁，模拟星光
+                    "opacity_min": 0.2,
+                    "sync": false
+                }
+            },
+            "size": {
+                "value": 3,
+                "random": true, // 大小随机（1-5px）
+                "anim": {
+                    "enable": true,
+                    "speed": 1, // 缓慢缩放，模拟星光脉动
+                    "size_min": 1,
+                    "sync": false
+                }
+            },
+            "line_linked": {
+                "enable": false, // 取消粒子连线，纯星空无连线
+                "distance": 150,
+                "color": "#ffd6e0",
+                "opacity": 0.2,
+                "width": 1
+            },
+            "move": {
+                "enable": true,
+                "speed": 0.5, // 极慢移动，模拟星空漂移
+                "direction": "none",
+                "random": true,
+                "straight": false,
+                "out_mode": "wrap", // 边界环绕，无粒子消失
+                "bounce": false
+            }
+        },
+        "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+                "onhover": {
+                    "enable": true,
+                    "mode": "grab" // 鼠标悬浮时粒子轻微聚集，模拟星空聚焦
+                },
+                "onclick": {
+                    "enable": true,
+                    "mode": "push" // 点击产生额外亮星
+                },
+                "resize": true
+            },
+            "modes": {
+                "grab": {
+                    "distance": 180,
                     "line_linked": {
-                        "enable": true,
-                        "distance": 150,
-                        "color": "#40e0d0",
-                        "opacity": 0.4,
-                        "width": 1
-                    },
-                    "move": {
-                        "enable": true,
-                        "speed": 2, // 降低移动速度
-                        "direction": "none",
-                        "random": true,
-                        "straight": false,
-                        "out_mode": "out",
-                        "bounce": false
+                        "opacity": 0.3, // 悬浮时临时显示连线，模拟星轨
+                        "color": "#c8b6ff"
                     }
                 },
-                "interactivity": {
-                    "detect_on": "canvas",
-                    "events": {
-                        "onhover": {
-                            "enable": true,
-                            "mode": "grab"
-                        },
-                        "onclick": {
-                            "enable": true,
-                            "mode": "push"
-                        },
-                        "resize": true
-                    },
-                    "modes": {
-                        "grab": {
-                            "distance": 140,
-                            "line_linked": {
-                                "opacity": 1
-                            }
-                        },
-                        "push": {
-                            "particles_nb": 3 // 减少点击时产生的粒子
-                        }
-                    }
-                },
-                "retina_detect": true
-            });
-            
+                "push": {
+                    "particles_nb": 50 // 点击产生5颗亮星
+                }
+            }
+        },
+        "retina_detect": true
+    });
+
             // 添加卡片悬停效果 - 简化版本
             const cards = document.querySelectorAll('.feature-card');
             cards.forEach(card => {
@@ -793,6 +843,127 @@
     </script>
     
 </body>
+<!-- 二次元动漫AI背景 -->
+<div class="anime-bg" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden;">
+  <!-- 动漫渐变底色 -->
+  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #fad0c4 50%, #a18cd1 100%); opacity: 0.15; mix-blend-mode: overlay;"></div>
+  
+  <!-- 动漫光斑效果 -->
+  <div style="position: absolute; top: 20%; left: 15%; width: 300px; height: 300px; background: radial-gradient(circle, #ffd6e0 0%, transparent 70%); opacity: 0.3; filter: blur(50px); animation: float 15s infinite ease-in-out;"></div>
+  <div style="position: absolute; bottom: 20%; right: 15%; width: 400px; height: 400px; background: radial-gradient(circle, #c8b6ff 0%, transparent 70%); opacity: 0.25; filter: blur(60px); animation: float 18s infinite ease-in-out 2s;"></div>
+  
+  <!-- AI动态粒子（动漫元素风格） -->
+  <canvas id="animeParticles" style="width: 100%; height: 100%;"></canvas>
+</div>
+
+<script>
+// 二次元粒子动画逻辑
+document.addEventListener('DOMContentLoaded', function() {
+  const canvas = document.getElementById('animeParticles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  // 适配窗口大小
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // 粒子类（动漫风格：圆形、星形、水滴形）
+  class AnimeParticle {
+    constructor() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = Math.random() * 4 + 1;
+      this.speedX = Math.random() * 0.5 - 0.25;
+      this.speedY = Math.random() * 0.5 - 0.25;
+      // 动漫色系：粉、紫、蓝、浅黄
+      this.color = ['#ff9a9e', '#a18cd1', '#8ecae6', '#ffb703', '#fad0c4'][Math.floor(Math.random() * 5)];
+      this.shape = Math.floor(Math.random() * 3); // 0:圆形 1:星形 2:水滴形
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      // 边界反弹
+      if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+      if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = 0.6;
+
+      // 绘制不同形状
+      if (this.shape === 0) { // 圆形（动漫常用光斑）
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      } else if (this.shape === 1) { // 星形（动漫装饰元素）
+        ctx.moveTo(this.x, this.y - this.size);
+        for (let i = 0; i < 5; i++) {
+          ctx.lineTo(
+            this.x + Math.sin((i * 2 * Math.PI) / 5) * this.size,
+            this.y - Math.cos((i * 2 * Math.PI) / 5) * this.size
+          );
+          ctx.lineTo(
+            this.x + Math.sin((i * 2 * Math.PI / 5) + Math.PI / 5) * this.size / 2,
+            this.y - Math.cos((i * 2 * Math.PI / 5) + Math.PI / 5) * this.size / 2
+          );
+        }
+        ctx.closePath();
+      } else { // 水滴形（动漫灵动元素）
+        ctx.ellipse(this.x, this.y, this.size, this.size * 1.5, Math.PI / 4, 0, Math.PI * 2);
+      }
+
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // 创建粒子（150个，兼顾性能与视觉）
+  function initParticles() {
+    particles = [];
+    for (let i = 0; i < 150; i++) {
+      particles.push(new AnimeParticle());
+    }
+  }
+
+  // 动画循环
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(particle => {
+      particle.update();
+      particle.draw();
+    });
+    requestAnimationFrame(animate);
+  }
+
+  // 浮动动画（光斑）
+  function animateFloats() {
+    const floats = document.querySelectorAll('.anime-bg > div:nth-child(2), .anime-bg > div:nth-child(3)');
+    floats.forEach(float => {
+      const x = parseFloat(float.style.left) || 0;
+      const y = parseFloat(float.style.top) || 0;
+      float.style.left = `${x + Math.sin(Date.now() * 0.001) * 0.1}%`;
+      float.style.top = `${y + Math.cos(Date.now() * 0.001) * 0.1}%`;
+    });
+    requestAnimationFrame(animateFloats);
+  }
+
+  // 初始化
+  initParticles();
+  animate();
+  animateFloats();
+});
+
+// 浮动动画关键帧
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -20px) scale(1.05); }
+}
+</script>
 <!-- 自动播放 1.mp3 音乐（隐藏式） -->
 <audio id="autoPlayMusic" autoplay loop preload="auto" style="display: none;">
   <source src="1.mp3" type="audio/mpeg">
@@ -815,4 +986,4 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
-</html>
+                                       </html>
