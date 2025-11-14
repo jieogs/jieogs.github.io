@@ -3,987 +3,517 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOVE02</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>一份特别的礼物</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+          --bg: #ffffff;
+          --text: #1a1a1a;
+          --subtext: #4d4d4d;
+          --border: #e5e5e5;
+          --shadow: 0 8px 24px rgba(0,0,0,0.12);
+          --shadow-heavy: 0 20px 48px rgba(0,0,0,0.16);
+          --overlay: rgba(0, 0, 0, 0.4);
+          --accent: #0078d4; /* Windows 蓝 */
         }
-        
+
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
         body {
-            background: #0a0e17;
-            color: #e0e0ff;
-            font-family: 'Rajdhani', sans-serif;
-            overflow-x: hidden;
-            min-height: 100vh;
-            position: relative;
-            line-height: 1.6;
+          margin: 0;
+          background: linear-gradient(135deg, #f0f4f8 0%, #e8eef5 50%, #dfe7f0 100%);
+          color: var(--text);
+          font-family: "Noto Sans SC", Segoe UI, system-ui, -apple-system, Roboto, Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+          overflow: hidden;
         }
-        
-        /* 性能优化的背景效果 */
-        .bg-effects {
+        #popup-layer {
+          position: fixed;
+          inset: 0;
+          pointer-events: none; 
+        }
+        .modal-backdrop {
+          position: fixed;
+          inset: 0;
+          background: var(--overlay);
+          display: grid;
+          place-items: center;
+          z-index: 9999;
+        }
+
+        .modal {
+          width: min(92vw, 520px);
+          background: #ffffff;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          box-shadow: var(--shadow-heavy);
+          text-align: left;
+          overflow: hidden;
+          animation: modal-appear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .modal .titlebar {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 14px;
+          background: #f3f3f3;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .modal .titlebar .icon { font-size: 18px; }
+        .modal .titlebar .title { font-weight: 700; }
+
+        .modal .content { padding: 16px 16px 8px; color: var(--subtext); }
+        .modal .actions { padding: 0 16px 16px; display: flex; gap: 10px; justify-content: flex-end; }
+
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          height: 36px;
+          padding: 0 14px;
+          border-radius: 4px;
+          border: 1px solid var(--border);
+          cursor: pointer;
+          font-weight: 600;
+          letter-spacing: .2px;
+          background: #f7f7f7;
+        }
+
+        .btn.primary { background: var(--accent); color: #fff; border-color: #0a6ecf; }
+        .btn:hover { filter: brightness(0.98); }
+        .btn.primary:hover { filter: brightness(1.05); }
+        .btn:active { transform: translateY(1px); }
+        .popup {
+          position: absolute;
+          width: 230px;
+          color: var(--text);
+          background: #ffffff;
+          border-radius: 7px;
+          border: 1px solid var(--border);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.15), 0 8px 32px rgba(0,0,0,0.08);
+          font-size: 13px;
+          line-height: 1.4;
+          pointer-events: none;
+          user-select: none;
+          transform-origin: center;
+          overflow: hidden;
+        }
+
+        .popup .header {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 3px 8px;
+          background: #f3f3f3;
+          border-bottom: 1px solid var(--border);
+        }
+        .popup .header .icon { font-size: 12px; }
+        .popup .header .title { font-weight: 800; font-size: 11px; }
+
+        .popup .content { 
+          padding: 12px 10px; /* 增加内边距以增加高度 */
+          color: var(--text); 
+          font-size: 18px; 
+          font-weight: 600; 
+          line-height: 1.25; 
+          text-align: center; 
+          min-height: 70px; /* 设置最小高度 */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        /* 不同颜色主题的弹窗背景 */
+        .popup.theme-blue .header { background: #e3f2fd; border-bottom-color: #bbdefb; }
+        .popup.theme-blue .content { background: #f1f8ff; }
+
+        .popup.theme-green .header { background: #e8f5e9; border-bottom-color: #c8e6c9; }
+        .popup.theme-green .content { background: #f1f8f4; }
+
+        .popup.theme-orange .header { background: #fff3e0; border-bottom-color: #ffe0b2; }
+        .popup.theme-orange .content { background: #fffaf3; }
+
+        .popup.theme-purple .header { background: #f3e5f5; border-bottom-color: #e1bee7; }
+        .popup.theme-purple .content { background: #faf5fc; }
+
+        .popup.theme-pink .header { background: #fce4ec; border-bottom-color: #f8bbd0; }
+        .popup.theme-pink .content { background: #fff0f5; }
+
+        .popup.theme-yellow .header { background: #fffde7; border-bottom-color: #fff9c4; }
+        .popup.theme-yellow .content { background: #fffef7; }
+
+        .popup.theme-cyan .header { background: #e0f7fa; border-bottom-color: #b2ebf2; }
+        .popup.theme-cyan .content { background: #f0fcff; }
+
+        .popup.theme-lime .header { background: #f9fbe7; border-bottom-color: #f0f4c3; }
+        .popup.theme-lime .content { background: #fdfef8; }
+
+        .popup.theme-red .header { background: #ffebee; border-bottom-color: #ffcdd2; }
+        .popup.theme-red .content { background: #fff5f5; }
+
+        .popup.theme-teal .header { background: #e0f2f1; border-bottom-color: #b2dfdb; }
+        .popup.theme-teal .content { background: #f0faf9; }
+
+        .popup.theme-indigo .header { background: #e8eaf6; border-bottom-color: #c5cae9; }
+        .popup.theme-indigo .content { background: #f3f4fb; }
+
+        .popup.theme-amber .header { background: #fff8e1; border-bottom-color: #ffecb3; }
+        .popup.theme-amber .content { background: #fffef5; }
+
+        .popup.theme-rose .header { background: #fce4ec; border-bottom-color: #f8bbd0; }
+        .popup.theme-rose .content { background: #fef5f8; }
+
+        .popup.theme-mint .header { background: #e8f8f5; border-bottom-color: #c8ebe3; }
+        .popup.theme-mint .content { background: #f5fcfa; }
+
+        .popup.theme-peach .header { background: #fff0e5; border-bottom-color: #ffe0c7; }
+        .popup.theme-peach .content { background: #fffaf5; }
+
+        .popup.theme-lavender .header { background: #f0ebf8; border-bottom-color: #ddd0f0; }
+        .popup.theme-lavender .content { background: #f9f6fc; }
+
+        .popup.theme-coral .header { background: #ffe4e1; border-bottom-color: #ffc4bd; }
+        .popup.theme-coral .content { background: #fff7f6; }
+
+        .popup.theme-sky .header { background: #e1f5fe; border-bottom-color: #b3e5fc; }
+        .popup.theme-sky .content { background: #f0fbff; }
+
+        .popup.theme-lemon .header { background: #fffef0; border-bottom-color: #fff9c8; }
+        .popup.theme-lemon .content { background: #fffffa; }
+
+        @media (max-width: 640px) {
+          .popup { width: min(230px, 85vw); font-size: 13px; }
+          .popup .content { font-size: 16px; }
+        }
+
+        @keyframes modal-appear {
+          0% {
+            opacity: 0;
+            transform: scale(0.7) translateY(-20px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        /* 从上方弹出 */
+        @keyframes popup-from-top {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translateY(-60px);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.08) translateY(0);
+          }
+          80% {
+            transform: scale(0.95) translateY(0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        /* 从下方弹出 */
+        @keyframes popup-from-bottom {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translateY(60px);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.08) translateY(0);
+          }
+          80% {
+            transform: scale(0.95) translateY(0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        /* 从左边弹出 */
+        @keyframes popup-from-left {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translateX(-60px);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.08) translateX(0);
+          }
+          80% {
+            transform: scale(0.95) translateX(0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateX(0);
+          }
+        }
+
+        /* 从右边弹出 */
+        @keyframes popup-from-right {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translateX(60px);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.08) translateX(0);
+          }
+          80% {
+            transform: scale(0.95) translateX(0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateX(0);
+          }
+        }
+
+        /* 从左上角弹出 */
+        @keyframes popup-from-topleft {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translate(-50px, -50px);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.08) translate(0, 0);
+          }
+          80% {
+            transform: scale(0.95) translate(0, 0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translate(0, 0);
+          }
+        }
+
+        /* 从右上角弹出 */
+        @keyframes popup-from-topright {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translate(50px, -50px);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.08) translate(0, 0);
+          }
+          80% {
+            transform: scale(0.95) translate(0, 0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translate(0, 0);
+          }
+        }
+
+        /* 从左下角弹出 */
+        @keyframes popup-from-bottomleft {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translate(-50px, 50px);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.08) translate(0, 0);
+          }
+          80% {
+            transform: scale(0.95) translate(0, 0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translate(0, 0);
+          }
+        }
+
+        /* 从右下角弹出 */
+        @keyframes popup-from-bottomright {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translate(50px, 50px);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.08) translate(0, 0);
+          }
+          80% {
+            transform: scale(0.95) translate(0, 0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translate(0, 0);
+          }
+        }
+
+        /* 动画类 */
+        .anim-top { animation: popup-from-top 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .anim-bottom { animation: popup-from-bottom 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .anim-left { animation: popup-from-left 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .anim-right { animation: popup-from-right 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .anim-topleft { animation: popup-from-topleft 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .anim-topright { animation: popup-from-topright 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .anim-bottomleft { animation: popup-from-bottomleft 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .anim-bottomright { animation: popup-from-bottomright 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* 加载动画 */
+        .loading-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0;
-            overflow: hidden;
-        }
-        
-        #particles-js {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-        
-        /* 移除网格背景，改用更轻量的渐变效果 */
-        .light-effects {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(64, 224, 208, 0.15) 0%, transparent 25%),
-                radial-gradient(circle at 80% 70%, rgba(255, 0, 128, 0.15) 0%, transparent 25%);
-            z-index: 2;
-            animation: bgPulse 15s infinite alternate;
-        }
-        
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, 
-                rgba(255, 255, 255, 0.03) 50%, 
-                rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 10;
-            animation: scanline 8s linear infinite;
-            opacity: 0.1;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            position: relative;
-            z-index: 20;
-        }
-        
-        header {
-            padding: 30px 0; /* 缩减头部上下内边距 */
+            background-color: rgba(255, 255, 255, 0.9);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(64, 224, 208, 0.3);
-            position: relative;
-        }
-        
-        .logo {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 26px; /* 缩小logo字体 */
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 0 10px #40e0d0;
-            letter-spacing: 2px;
-            position: relative;
-            display: inline-block;
-        }
-        
-        .logo::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #40e0d0, transparent);
-            animation: scanline 3s linear infinite;
-        }
-        
-        .logo span {
-            display: inline-block;
-            animation: textGlow 2s infinite;
-        }
-        
-        .logo span:nth-child(1) { animation-delay: 0.1s; }
-        .logo span:nth-child(2) { animation-delay: 0.2s; }
-        .logo span:nth-child(3) { animation-delay: 0.3s; }
-        .logo span:nth-child(4) { animation-delay: 0.4s; }
-        .logo span:nth-child(5) { animation-delay: 0.5s; }
-        .logo span:nth-child(6) { animation-delay: 0.6s; }
-        .logo span:nth-child(7) { animation-delay: 0.7s; }
-        .logo span:nth-child(8) { animation-delay: 0.8s; }
-        
-        nav ul {
-            display: flex;
-            list-style: none;
-        }
-        
-        nav ul li {
-            margin-left: 30px; /* 缩减导航项间距 */
-            position: relative;
-        }
-        
-        nav ul li a {
-            color: #b0b0ff;
-            text-decoration: none;
-            font-size: 17px; /* 缩小导航字体 */
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-            padding: 5px 0;
-        }
-        
-        nav ul li a:hover {
-            color: #40e0d0;
-        }
-        
-        nav ul li a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #40e0d0, #ff0080);
-            transition: width 0.5s ease;
-        }
-        
-        nav ul li a:hover::after {
-            width: 100%;
-        }
-        
-        .hero {
-            padding: 70px 0 50px; /* 大幅缩减英雄区上下内边距 */
-            text-align: center;
-            position: relative;
-        }
-        
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 50px; /* 缩小标题字体 */
-            font-weight: 700;
-            margin-bottom: 20px; /* 缩减标题下间距 */
-            background: linear-gradient(45deg, #40e0d0, #ff0080, #40e0d0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            background-size: 200% auto;
-            animation: gradient 3s linear infinite;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            position: relative;
-            display: inline-block;
-        }
-        
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 10%;
-            width: 80%;
-            height: 3px; /* 减薄下划线 */
-            background: linear-gradient(90deg, transparent, #40e0d0, #ff0080, transparent);
-            border-radius: 100%;
-            filter: blur(2px);
-            animation: pulseWidth 4s infinite ease-in-out;
-        }
-        
-        .subtitle {
-            font-size: 20px; /* 缩小副标题字体 */
-            max-width: 600px;
-            margin: 0 auto 30px; /* 缩减副标题下间距 */
-            color: #a0a0ee;
-            line-height: 1.6;
-            animation: fadeInUp 1.5s ease-out;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            padding: 12px 30px; /* 缩减按钮内边距 */
-            background: transparent;
-            border: 2px solid #40e0d0;
-            color: #40e0d0;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 16px; /* 缩小按钮字体 */
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            z-index: 1;
-            animation: pulseBorder 2s infinite;
-        }
-        
-        .cta-button:hover {
-            color: #0a0e17;
-        }
-        
-        .cta-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: #40e0d0;
-            transition: all 0.4s ease;
-            z-index: -1;
-        }
-        
-        .cta-button:hover::before {
-            left: 0;
-        }
-        
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 缩小卡片最小宽度 */
-            gap: 20px; /* 缩减卡片间距 */
-            margin: 60px 0; /* 缩减卡片区上下外边距 */
-        }
-        
-        .feature-card {
-            background: rgba(16, 21, 36, 0.7);
-            border: 1px solid rgba(64, 224, 208, 0.2);
-            border-radius: 15px;
-            padding: 25px; /* 缩减卡片内边距 */
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            transform: translateZ(0); /* 启用GPU加速 */
-            animation: cardAppear 1s ease-out;
-        }
-        
-        .feature-card:nth-child(2) {
-            animation-delay: 0.3s;
-        }
-        
-        .feature-card:nth-child(3) {
-            animation-delay: 0.6s;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.4);
-            border-color: rgba(64, 224, 208, 0.5);
-        }
-        
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(64, 224, 208, 0.1), transparent);
-            transform: translateX(-100%);
-        }
-        
-        .feature-card:hover::before {
-            animation: shine 1.5s ease;
-        }
-        
-        .feature-icon {
-            font-size: 35px; /* 缩小图标尺寸 */
-            margin-bottom: 15px; /* 缩减图标下间距 */
-            color: #40e0d0;
-            text-shadow: 0 0 10px rgba(64, 224, 208, 0.5);
-            animation: iconPulse 3s infinite ease-in-out;
-        }
-        
-        .feature-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 22px; /* 缩小卡片标题字体 */
-            margin-bottom: 12px; /* 缩减标题下间距 */
-            color: #fff;
-        }
-        
-        .feature-desc {
-            color: #a0a0ee;
-            line-height: 1.6;
-            font-size: 15px; /* 缩小描述文字 */
-        }
-        
-        footer {
-            text-align: center;
-            padding: 30px 0; /* 缩减页脚内边距 */
-            margin-top: 60px; /* 缩减页脚上外边距 */
-            border-top: 1px solid rgba(64, 224, 208, 0.3);
-            position: relative;
-        }
-        
-        footer::before {
-            content: '';
-            position: absolute;
-            top: -1px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #40e0d0, transparent);
-        }
-        
-        footer p {
-            font-size: 15px; /* 缩小页脚文字 */
-        }
-        
-        /* 动画定义 - 优化性能 */
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        @keyframes scanline {
-            0% { transform: translateY(-100px); }
-            100% { transform: translateY(100vh); }
-        }
-        
-        @keyframes shine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        @keyframes bgPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 0.8; }
-        }
-        
-        @keyframes pulseWidth {
-            0%, 100% { width: 80%; left: 10%; }
-            50% { width: 60%; left: 20%; }
-        }
-        
-        @keyframes pulseBorder {
-            0%, 100% { box-shadow: 0 0 5px rgba(64, 224, 208, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(64, 224, 208, 0.8); }
-        }
-        
-        @keyframes textGlow {
-            0%, 100% { text-shadow: 0 0 10px #40e0d0; }
-            50% { text-shadow: 0 0 20px #40e0d0, 0 0 30px #40e0d0; }
-        }
-        
-        @keyframes iconPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes cardAppear {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 35px;
-            }
-            
-            .subtitle {
-                font-size: 17px;
-            }
-            
-            nav ul li {
-                margin-left: 15px;
-            }
-            
-            .features {
-                grid-template-columns: 1fr;
-            }
-            
-            header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            nav ul {
-                margin-top: 15px; /* 缩减导航上间距 */
-                justify-content: center;
-            }
-        }
-        
-        /* ================== 公告弹窗（覆盖主内容）CSS ================== */
-        .ios-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 99999; /* 确保覆盖所有内容 */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 220ms ease, visibility 220ms ease;
-            -webkit-backdrop-filter: blur(4px);
-            backdrop-filter: blur(4px);
+            z-index: 9999;
+            transition: opacity 0.5s ease;
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        .ios-modal-overlay.active { opacity: 1; visibility: visible; }
-        .ios-modal {
-            width: 360px;
-            max-width: calc(100% - 40px);
-            background: linear-gradient(180deg, rgba(10,14,23,0.98), rgba(15,20,35,0.96));
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-            color: #e6f7ff;
-            transform: translateY(16px) scale(0.98);
-            opacity: 0;
-            transition: transform 260ms cubic-bezier(.2,.9,.3,1.1), opacity 260ms ease;
-            overflow: hidden;
-            border: 1px solid rgba(64,224,208,0.06);
-            z-index: 100000; /* 确保弹窗在最上层 */
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f0f0f0;
+            border-top: 6px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
-        .ios-modal-overlay.active .ios-modal { transform: translateY(0) scale(1); opacity: 1; }
-        .ios-modal-header { padding: 16px 16px 6px; text-align: left; } /* 缩减弹窗头部内边距 */
-        .ios-modal-title { font-family: 'Orbitron', sans-serif; font-weight:700; font-size:18px; color:#ffffff; margin-bottom:2px; } /* 缩小弹窗标题 */
-        .ios-modal-subtitle { font-size:11px; color:#9fbecf; }
-        .ios-modal-body { padding:14px 16px 4px; color:#dbeeff; font-size:14px; line-height:1.45; } /* 缩减弹窗内容内边距+缩小字体 */
-        .ios-modal-footer { display:flex; border-top:1px solid rgba(255,255,255,0.03); margin-top:10px; justify-content:center; padding-bottom:10px; } /* 缩减弹窗底部内边距 */
-        .ios-modal-button { flex: none; background: none; border: none; padding: 8px 12px; font-size:14px; cursor: pointer; } /* 缩减按钮内边距+缩小字体 */
-        .ios-modal-button.confirm {
-            color: #0a0e17;
-            background: linear-gradient(90deg,#40e0d0,#ff0080);
-            border-radius: 6px;
-            min-width: 120px; /* 缩小确认按钮宽度 */
-            font-weight: 700;
+        
+        .loading-text {
+            font-size: 20px;
+            color: var(--accent);
+            font-weight: bold;
         }
-        @media (max-width:480px) { .ios-modal { width: 92%; } }
-
-        /* ========== 禁止主内容交互（当 modal 打开时） ========== */
-        body.modal-open { overflow: hidden !important; }
-        /* 禁止 body 下除了 overlay 以外的直接子元素的指针事件、触摸与选取 */
-        body.modal-open > *:not(.ios-modal-overlay) {
-            pointer-events: none !important;
-            user-select: none !important;
-            -webkit-user-select: none !important;
-            touch-action: none !important;
-            filter: saturate(0.95) brightness(0.96); /* 视觉可选微弱暗化 */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
+        
     </style>
 </head>
 <body>
-
-
-    <div class="bg-effects">
-        <div id="particles-js"></div>
-        <div class="light-effects"></div>
+    <div class="loading-container" id="loadingContainer">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中...</div>
     </div>
-    
-    <div class="scanlines"></div>
-    
-    <div class="container">
-        <header>
-<div class="logo"><span></span><span>F</span><span>R</span><span>N</span><span>X</span><span>X</span></div>
-<nav>
-  <ul>
-    <li><a href="#">首页</a></li>
-    <!-- 核心修改：添加 href 跳转链接，target="_blank" 新窗口打开（可选） -->
-    <li><a href="https://qun.qq.com/universal-share/share?ac=1&authKey=%2BUB3h3OQUpHInUa3ap3ofpss8QcTiI0UWWnUh09HB%2Fto2N7el4Yv2JQBenLMFqZR&busi_data=eyJncm91cENvZGUiOiI5MTQwMjg1NDYiLCJ0b2tlbiI6IlZEQzN4dElnakxxZVZLb2tmTVR0TC9BMkh2QThNemFnK2hQV3RqNHRydnh4UG94dXJrZm5BT0tReXFpSDBHUmQiLCJ1aW4iOiIyNTAwMDU2NTIwIn0%3D&data=2tB2eVvjUWMIunVlBKm0koKWw1l0del9M3xuezN-g-BhYdxahDMxP79mOG3-6IIDa8nut85AOGcu5mjqDnaIaw&svctype=4&tempid=h5_group_info" target="_blank">关于我们</a></li>
-    <li><a href="#"></a></li>
-  </ul>
-</nav>
-        </header>
-        
-        <section class="hero">
-<h1>AI二创</h1>
-            <p class="subtitle">FRANXX团队，为爱发电。</p>
-
-<section class="features">
-    <div class="feature-card" style="padding: 25px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px;"> <!-- 缩减内部间距 -->
-        <!-- 优化小人图标样式，更醒目 -->
-        <div class="feature-icon" style="font-size: 50px; color: #ff9a9e; text-shadow: 0 0 20px rgba(255, 148, 158, 0.6); animation: iconPulse 3s infinite ease-in-out;">👤</div> <!-- 缩小图标+改用原有动画 -->
-        
-        <!-- 标题增加装饰线 -->
-        <div style="width: 100%;">
-            <h3 class="feature-title" style="font-size: 24px; color: #ffd6e0; margin-bottom: 6px; position: relative;"> <!-- 缩小标题 -->
-                木偶动画
-                <span style="position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 50px; height: 2px; background: #ff9a9e;"></span> <!-- 缩小装饰线 -->
-            </h3>
-        </div>
-        
-        <!-- 描述文字优化排版 -->
-        <p class="feature-desc" style="font-size: 15px; color: #d0c4ff; line-height: 1.7; max-width: 300px; padding: 0 5px;"> <!-- 缩小字体+缩减宽度 -->
-            打破静态局限！将普通图片一键转化为<span style="color: #ff9a9e; font-weight: 500;">灵动鲜活</span>的动态视频，表情、动作自然流畅，轻松实现二次元角色“活”起来～
-        </p>
-        
-        <!-- 新增小标签，强化核心卖点 -->
-        <div style="display: flex; gap: 10px; margin-top: 8px;"> <!-- 缩减标签间距 -->
-            <span style="background: rgba(255, 148, 158, 0.2); color: #ffd6e0; padding: 3px 10px; border-radius: 20px; font-size: 13px;">AI驱动</span> <!-- 缩小标签内边距+字体 -->
-            <span style="background: rgba(161, 140, 209, 0.2); color: #c8b6ff; padding: 3px 10px; border-radius: 20px; font-size: 13px;">一键生成</span>
-            <span style="background: rgba(64, 224, 208, 0.2); color: #8ecae6; padding: 3px 10px; border-radius: 20px; font-size: 13px;">无门槛</span>
-        </div>
-    </div>
-
-    <div class="feature-card">
-        <div class="feature-icon">😊</div> <!-- 替换为可爱笑脸，保持原有样式 -->
-        <h3 class="feature-title">团队成员</h3>
-        <p class="feature-desc">运营:@Chou<br>制作:@阿夜</p> <!-- 用<br>优化换行间距 -->
-    </div>
-</section>
-    </div>
-
-    
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 @Chou 天天开心.</p>
-        </div>
-    </footer>
-    
-    <!-- 添加弹窗HTML结构 -->
-    <div class="ios-modal-overlay" id="iosModal" aria-hidden="true">
-        <div class="ios-modal">
-            <div class="ios-modal-header">
-                <h2 class="ios-modal-title">通知</h2>
-                <p class="ios-modal-subtitle"> 最新动态</p>
+    <div class="modal-backdrop" id="confirmModal" style="display: none;">
+        <div class="modal">
+            <div class="titlebar">
+                <div class="icon">💝</div>
+                <div class="title">您有一份特殊的礼物</div>
             </div>
-            <div class="ios-modal-body">
-                <p>欢迎来的FRANXX官网，本团队为新团队，欢迎各位加入~</p>
+            <div class="content">
+                <p>点击确认拆开，准备好接收了吗？</p>
             </div>
-            <div class="ios-modal-footer">
-                <button class="ios-modal-button confirm" id="modalConfirm">我知道了</button>
+            <div class="actions">
+                <button class="btn primary" id="confirmBtn">确认</button>
             </div>
         </div>
     </div>
+    <div id="popup-layer"></div>
+    <audio id="bgMusic" preload="auto" loop>
+        <source src="https://sf5-hl-cdn-tos.douyinstatic.com/obj/ies-music/7499771397531503370.mp3" type="audio/mpeg">
+    </audio>
 
-  <!-- 二次元星空粒子脚本 -->
-<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    particlesJS('particles-js', {
-        "particles": {
-            "number": {
-                "value": 850, // 星空粒子数量（密度适中）
-                "density": {
-                    "enable": true,
-                    "value_area": 1200 // 分散分布，模拟星空
-                }
-            },
-            "color": {
-                "value": ["#ffd6e0", "#c8b6ff", "#e0d4ff", "#ff9a9e", "#a18cd1"] // 二次元星空色系
-            },
-            "shape": {
-                "type": ["circle", "star"], // 圆形（恒星）+ 星形（亮星）
-                "star": {
-                    "sides": 5 // 五角星形状
-                }
-            },
-            "opacity": {
-                "value": 0.7,
-                "random": true, // 明暗不一，模拟星空层次感
-                "anim": {
-                    "enable": true,
-                    "speed": 0.5, // 缓慢闪烁，模拟星光
-                    "opacity_min": 0.2,
-                    "sync": false
-                }
-            },
-            "size": {
-                "value": 3,
-                "random": true, // 大小随机（1-5px）
-                "anim": {
-                    "enable": true,
-                    "speed": 1, // 缓慢缩放，模拟星光脉动
-                    "size_min": 1,
-                    "sync": false
-                }
-            },
-            "line_linked": {
-                "enable": false, // 取消粒子连线，纯星空无连线
-                "distance": 150,
-                "color": "#ffd6e0",
-                "opacity": 0.2,
-                "width": 1
-            },
-            "move": {
-                "enable": true,
-                "speed": 0.5, // 极慢移动，模拟星空漂移
-                "direction": "none",
-                "random": true,
-                "straight": false,
-                "out_mode": "wrap", // 边界环绕，无粒子消失
-                "bounce": false
-            }
-        },
-        "interactivity": {
-            "detect_on": "canvas",
-            "events": {
-                "onhover": {
-                    "enable": true,
-                    "mode": "grab" // 鼠标悬浮时粒子轻微聚集，模拟星空聚焦
-                },
-                "onclick": {
-                    "enable": true,
-                    "mode": "push" // 点击产生额外亮星
-                },
-                "resize": true
-            },
-            "modes": {
-                "grab": {
-                    "distance": 180,
-                    "line_linked": {
-                        "opacity": 0.3, // 悬浮时临时显示连线，模拟星轨
-                        "color": "#c8b6ff"
-                    }
-                },
-                "push": {
-                    "particles_nb": 50 // 点击产生5颗亮星
-                }
-            }
-        },
-        "retina_detect": true
-    });
-
-            // 添加卡片悬停效果 - 简化版本
-            const cards = document.querySelectorAll('.feature-card');
-            cards.forEach(card => {
-                card.addEventListener('mousemove', function(e) {
-                    const rect = this.getBoundingClientRect();
-                    const hWidth = rect.width / 2;
-                    const hHeight = rect.height / 2;
-                    
-                    const angleY = (e.clientX - rect.left - hWidth) / 20;
-                    const angleX = (rect.top + hHeight - e.clientY) / 20;
-                    
-                    this.style.transform = `translateY(-10px) rotateX(${angleX}deg) rotateY(${angleY}deg)`;
-                });
-                
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
-                });
-            });
-        });
-    </script>
-       <!-- ====== 弹窗控制脚本（单确认按钮，禁止主内容交互，focus-trap） ====== -->
     <script>
-        (function() {
-            const modalOverlay = document.getElementById('iosModal');
-            const dialog = modalOverlay.querySelector('.ios-modal');
-            const modalConfirm = document.getElementById('modalConfirm');
-
-            // body 下除了 overlay 本身以外的节点（用于设置 inert / aria-hidden）
-            const mainNodes = Array.from(document.body.children).filter(n => n !== modalOverlay);
-
-            const FOCUSABLE_SELECTORS = [
-                'a[href]',
-                'area[href]',
-                'input:not([disabled])',
-                'select:not([disabled])',
-                'textarea:not([disabled])',
-                'button:not([disabled])',
-                'iframe',
-                'object',
-                'embed',
-                '[contenteditable]',
-                '[tabindex]:not([tabindex^="-"])'
-            ].join(',');
-
-            let previouslyFocused = null;
-            let keydownHandler = null;
-
-            function setInert(node, value) {
-                try {
-                    if (value) {
-                        node.setAttribute('inert', '');
-                        node.inert = true;
-                    } else {
-                        node.removeAttribute('inert');
-                        node.inert = false;
-                    }
-                } catch (e) {
-                    try {
-                        if (value) node.setAttribute('data-inert-fallback', 'true');
-                        else node.removeAttribute('data-inert-fallback');
-                    } catch (ee) {}
-                }
-            }
-
-            function disableMainContent() {
-                document.body.classList.add('modal-open');
-                mainNodes.forEach(n => {
-                    n.setAttribute('aria-hidden', 'true');
-                    setInert(n, true);
-                });
-            }
-
-            function enableMainContent() {
-                document.body.classList.remove('modal-open');
-                mainNodes.forEach(n => {
-                    n.removeAttribute('aria-hidden');
-                    setInert(n, false);
-                });
-            }
-
-            function focusFirstDescendant(element) {
-                const focusable = Array.from(element.querySelectorAll(FOCUSABLE_SELECTORS)).filter(el => {
-                    // 可见性检测：offsetWidth/Height > 0 或当前 active element
-                    return (el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement);
-                });
-                if (focusable.length) {
-                    focusable[0].focus();
-                    return true;
-                }
-                element.setAttribute('tabindex', '-1');
-                element.focus();
-                return false;
-            }
-
-            function trapFocus(e) {
-                if (e.key !== 'Tab') return;
-
-                const focusable = Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTORS)).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
-                if (focusable.length === 0) {
-                    e.preventDefault();
-                    return;
-                }
-
-                const first = focusable[0];
-                const last = focusable[focusable.length - 1];
-                if (e.shiftKey) {
-                    if (document.activeElement === first || dialog === document.activeElement) {
-                        e.preventDefault();
-                        last.focus();
-                    }
-                } else {
-                    if (document.activeElement === last) {
-                        e.preventDefault();
-                        first.focus();
-                    }
-                }
-            }
-
-            function showModal() {
-                previouslyFocused = document.activeElement;
-                disableMainContent();
-                modalOverlay.classList.add('active');
-                modalOverlay.setAttribute('aria-hidden', 'false');
-
-                // 把焦点放到 modal 内
+const blessings = [
+    "你活着干啥"
+];//自定义祝福语
+        const themes = [
+            'blue', 'green', 'orange', 'purple', 'pink',
+            'yellow', 'cyan', 'lime', 'red', 'teal',
+            'indigo', 'amber', 'rose', 'mint', 'peach',
+            'lavender', 'coral', 'sky', 'lemon'
+        ];
+        const animations = [
+            'anim-top', 'anim-bottom', 'anim-left', 'anim-right',
+            'anim-topleft', 'anim-topright', 'anim-bottomleft', 'anim-bottomright'
+        ];
+        
+        let popups = [];
+        let maxPopups = 40; 
+        let musicPlaying = false;
+        let popupInterval; 
+        const loadingContainer = document.getElementById('loadingContainer');
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const bgMusic = document.getElementById('bgMusic');
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                loadingContainer.style.opacity = '0';
+                
                 setTimeout(() => {
-                    focusFirstDescendant(dialog);
-                }, 10);
-
-                // 全局按键处理：ESC 关闭，Tab 循环（捕获阶段）
-                keydownHandler = function(e) {
-                    if (e.key === 'Escape') {
-                        hideModal();
-                    } else {
-                        trapFocus(e);
+                    loadingContainer.style.display = 'none';
+                    confirmModal.style.display = 'grid';
+                }, 500);
+            }, 1500);
+        });
+        confirmBtn.addEventListener('click', function() {
+            confirmModal.style.display = 'none';
+            bgMusic.play().then(() => {
+                musicPlaying = true;
+            }).catch(error => {
+                console.log('自动播放失败，需要用户交互:', error);
+            });
+            startCreatingPopups();
+        });
+        function startCreatingPopups() {
+            if (popupInterval) {
+                clearInterval(popupInterval);
+            }
+            popupInterval = setInterval(() => {
+                createPopup();
+                
+                if (popups.length > maxPopups) {
+                    const oldestPopup = popups.shift();
+                    if (oldestPopup && oldestPopup.parentNode) {
+                        oldestPopup.parentNode.removeChild(oldestPopup);
                     }
-                };
-                document.addEventListener('keydown', keydownHandler, true);
-            }
-
-            function hideModal() {
-                modalOverlay.classList.remove('active');
-                modalOverlay.setAttribute('aria-hidden', 'true');
-                enableMainContent();
-
-                // 恢复先前焦点
-                if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
-                    previouslyFocused.focus();
                 }
-
-                if (keydownHandler) {
-                    document.removeEventListener('keydown', keydownHandler, true);
-                    keydownHandler = null;
-                }
-            }
-
-            // 页面加载后短延迟显示（如需立即显示将 600 改为 0）
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(showModal, 600);
-            });
-
-            // 点击遮罩区域（不是 modal 内容）关闭
-            modalOverlay.addEventListener('click', function(e) {
-                if (e.target === modalOverlay) {
-                    hideModal();
-                }
-            });
-
-            // 确认按钮（关闭弹窗；你可以在回调里加入跳转逻辑）
-            modalConfirm.addEventListener('click', function() {
-                hideModal();
-                // 如果需要跳转，把下面这行替换为实际逻辑，例如：
-                // window.location.href = '/announcement-details.html';
-            });
-        })();
-    </script>
-    
-</body>
-<!-- 二次元动漫AI背景 -->
-<div class="anime-bg" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden;">
-  <!-- 动漫渐变底色 -->
-  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #fad0c4 50%, #a18cd1 100%); opacity: 0.15; mix-blend-mode: overlay;"></div>
-  
-  <!-- 动漫光斑效果 -->
-  <div style="position: absolute; top: 20%; left: 15%; width: 300px; height: 300px; background: radial-gradient(circle, #ffd6e0 0%, transparent 70%); opacity: 0.3; filter: blur(50px); animation: float 15s infinite ease-in-out;"></div>
-  <div style="position: absolute; bottom: 20%; right: 15%; width: 400px; height: 400px; background: radial-gradient(circle, #c8b6ff 0%, transparent 70%); opacity: 0.25; filter: blur(60px); animation: float 18s infinite ease-in-out 2s;"></div>
-  
-  <!-- AI动态粒子（动漫元素风格） -->
-  <canvas id="animeParticles" style="width: 100%; height: 100%;"></canvas>
-</div>
-
-<script>
-// 二次元粒子动画逻辑
-document.addEventListener('DOMContentLoaded', function() {
-  const canvas = document.getElementById('animeParticles');
-  const ctx = canvas.getContext('2d');
-  let particles = [];
-
-  // 适配窗口大小
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-
-  // 粒子类（动漫风格：圆形、星形、水滴形）
-  class AnimeParticle {
-    constructor() {
-      this.x = Math.random() * canvas.width;
-      this.y = Math.random() * canvas.height;
-      this.size = Math.random() * 4 + 1;
-      this.speedX = Math.random() * 0.5 - 0.25;
-      this.speedY = Math.random() * 0.5 - 0.25;
-      // 动漫色系：粉、紫、蓝、浅黄
-      this.color = ['#ff9a9e', '#a18cd1', '#8ecae6', '#ffb703', '#fad0c4'][Math.floor(Math.random() * 5)];
-      this.shape = Math.floor(Math.random() * 3); // 0:圆形 1:星形 2:水滴形
-    }
-
-    update() {
-      this.x += this.speedX;
-      this.y += this.speedY;
-      // 边界反弹
-      if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-      if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-    }
-
-    draw() {
-      ctx.beginPath();
-      ctx.fillStyle = this.color;
-      ctx.globalAlpha = 0.6;
-
-      // 绘制不同形状
-      if (this.shape === 0) { // 圆形（动漫常用光斑）
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      } else if (this.shape === 1) { // 星形（动漫装饰元素）
-        ctx.moveTo(this.x, this.y - this.size);
-        for (let i = 0; i < 5; i++) {
-          ctx.lineTo(
-            this.x + Math.sin((i * 2 * Math.PI) / 5) * this.size,
-            this.y - Math.cos((i * 2 * Math.PI) / 5) * this.size
-          );
-          ctx.lineTo(
-            this.x + Math.sin((i * 2 * Math.PI / 5) + Math.PI / 5) * this.size / 2,
-            this.y - Math.cos((i * 2 * Math.PI / 5) + Math.PI / 5) * this.size / 2
-          );
+            }, 100);
         }
-        ctx.closePath();
-      } else { // 水滴形（动漫灵动元素）
-        ctx.ellipse(this.x, this.y, this.size, this.size * 1.5, Math.PI / 4, 0, Math.PI * 2);
-      }
-
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-  }
-
-  // 创建粒子（150个，兼顾性能与视觉）
-  function initParticles() {
-    particles = [];
-    for (let i = 0; i < 150; i++) {
-      particles.push(new AnimeParticle());
-    }
-  }
-
-  // 动画循环
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(particle => {
-      particle.update();
-      particle.draw();
-    });
-    requestAnimationFrame(animate);
-  }
-
-  // 浮动动画（光斑）
-  function animateFloats() {
-    const floats = document.querySelectorAll('.anime-bg > div:nth-child(2), .anime-bg > div:nth-child(3)');
-    floats.forEach(float => {
-      const x = parseFloat(float.style.left) || 0;
-      const y = parseFloat(float.style.top) || 0;
-      float.style.left = `${x + Math.sin(Date.now() * 0.001) * 0.1}%`;
-      float.style.top = `${y + Math.cos(Date.now() * 0.001) * 0.1}%`;
-    });
-    requestAnimationFrame(animateFloats);
-  }
-
-  // 初始化
-  initParticles();
-  animate();
-  animateFloats();
-});
-
-// 浮动动画关键帧
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(20px, -20px) scale(1.05); }
-}
-</script>
-<!-- 自动播放 1.mp3 音乐（隐藏式） -->
-<audio id="autoPlayMusic" autoplay loop preload="auto" style="display: none;">
-  <source src="1.mp3" type="audio/mpeg">
-  您的浏览器不支持音频播放
-</audio>
-
-<script>
-// 兼容浏览器自动播放限制
-document.addEventListener('DOMContentLoaded', function() {
-  const audio = document.getElementById('autoPlayMusic');
-  audio.play().catch(() => {
-    // 点击/触摸页面后触发播放（解决浏览器限制）
-    const triggerPlay = () => {
-      audio.play();
-      document.removeEventListener('click', triggerPlay);
-      document.removeEventListener('touchstart', triggerPlay);
-    };
-    document.addEventListener('click', triggerPlay, { once: true });
-    document.addEventListener('touchstart', triggerPlay, { once: true });
-  });
-});
-</script>
+        
+        function createPopup() {
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+            popup.classList.add(`theme-${randomTheme}`);
+            const randomAnimation = animations[Math.floor(Math.random() * animations.length)];
+            popup.classList.add(randomAnimation);
+            const maxX = window.innerWidth - 230;
+            const maxY = window.innerHeight - 110;
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+            
+            popup.style.left = `${randomX}px`;
+            popup.style.top = `${randomY}px`;
+            const header = document.createElement('div');
+            header.className = 'header';
+            const icon = document.createElement('div');
+            icon.className = 'icon';
+            icon.innerHTML = '💝';
+            const title = document.createElement('div');
+            title.className = 'title';
+            title.innerHTML = '提示';
+            header.appendChild(icon);
+            header.appendChild(title);
+            const content = document.createElement('div');
+            content.className = 'content';
+            const randomBlessing = blessings[Math.floor(Math.random() * blessings.length)];
+            content.innerHTML = randomBlessing;
+            popup.appendChild(header);
+            popup.appendChild(content);
+            document.getElementById('popup-layer').appendChild(popup);
+            popups.push(popup);
+        }
+    </script>
+</body>
 </html>
